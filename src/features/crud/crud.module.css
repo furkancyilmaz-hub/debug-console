@@ -1,0 +1,89 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field > span {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.number {
+  width: 6rem;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.rowId {
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  min-width: 3rem;
+}
+
+.rowSecondary {
+  margin-left: auto;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.pageInfo {
+  margin-top: 0.75rem;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}
+
+.inspector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.raw {
+  max-height: 18rem;
+  overflow: auto;
+  margin: 0.75rem 0 0;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  color: var(--text-dim);
+}
+
+.note {
+  margin-top: 0.75rem;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}

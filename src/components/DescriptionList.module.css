@@ -1,0 +1,18 @@
+.list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 0.9rem;
+  margin: 0;
+  align-items: baseline;
+}
+
+.term {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.value {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
