@@ -1,0 +1,60 @@
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Mockup'taki segment denetimi: boyut seçici. */
+.sizes {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-raised);
+}
+
+.sizes button {
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+}
+
+.sizes button:last-child {
+  border-right: 0;
+}
+
+.sizes button:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+.sizes button.sizeActive,
+.sizes button.sizeActive:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.pager {
+  display: flex;
+  gap: 6px;
+}
+
+.pager button {
+  padding: 3px 9px;
+  font-size: 12px;
+}

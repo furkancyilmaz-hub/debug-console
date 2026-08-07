@@ -1,24 +1,38 @@
+/*
+ * Tasarım tokenları — kaynak: `docs/mockup.html`.
+ *
+ * Token adları SP001'den beri aynı; yalnızca değerleri kağıt temasına çekildi.
+ * Bütün modüller bu adlar üzerinden yazıldığı için tema tek yerden dönüyor.
+ */
 :root {
-  --bg: #0f1115;
-  --bg-raised: #161a21;
-  --bg-sunken: #0b0d11;
-  --border: #262c37;
-  --border-strong: #39424f;
-  --text: #e6e9ef;
-  --text-dim: #98a2b3;
-  --text-faint: #6b7480;
-  --accent: #4f8cff;
-  --danger: #ff6b6b;
-  --danger-bg: #2a1416;
-  --ok: #4ade80;
-  --warn: #fbbf24;
+  --bg: #efefea;
+  --bg-raised: #ffffff;
+  --bg-sunken: #ffffff;
+  --border: #dcdcd4;
+  --border-soft: #e8e8e2;
+  --border-strong: #c6c6be;
+  --text: #1a1c19;
+  --text-dim: #5c6159;
+  --text-faint: #8e938a;
 
-  --radius: 6px;
-  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --accent: #2f4b3f;
+  --accent-soft: #e3eae5;
+  --accent-hover: #263d33;
 
-  color-scheme: dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
+  --ok: #4b7a5e;
+  --ok-soft: #e4efe8;
+  --warn: #b4532a;
+  --warn-soft: #f6e7df;
+  --danger: #8c2f1e;
+  --danger-bg: #f6e7df;
+
+  --radius: 2px;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --condensed: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
+
+  color-scheme: light;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13.5px;
   line-height: 1.5;
 }
 
@@ -30,6 +44,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
@@ -41,7 +56,8 @@ h3 {
 }
 
 h1 {
-  font-size: 1.15rem;
+  font-size: 1.45rem;
+  letter-spacing: -0.01em;
 }
 
 h2 {
@@ -60,36 +76,42 @@ button {
   font: inherit;
   color: inherit;
   cursor: pointer;
-  padding: 0.4rem 0.75rem;
-  border: 1px solid var(--border-strong);
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-raised);
+  font-weight: 500;
 }
 
 button:hover:not(:disabled) {
-  border-color: var(--accent);
+  border-color: var(--text-faint);
 }
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 input,
 select {
   font: inherit;
   color: inherit;
-  padding: 0.35rem 0.5rem;
+  padding: 0.45rem 0.65rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-sunken);
 }
 
 input:focus,
-select:focus,
-button:focus-visible {
+select:focus {
+  border-color: var(--accent);
+}
+
+/* Mockup'taki gibi tek kural her odaklanabilir öğeyi kapsıyor — tablo
+   satırları da dahil, ayrıca kural yazmaya gerek kalmıyor. */
+:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
 code,

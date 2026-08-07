@@ -7,8 +7,12 @@
 }
 
 .term {
-  color: var(--text-dim);
-  font-size: 0.85rem;
+  font-family: var(--condensed);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 
 .value {

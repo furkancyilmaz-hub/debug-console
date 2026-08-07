@@ -1,11 +1,12 @@
 .button {
-  padding: 0.15rem 0.45rem;
-  font-size: 0.75rem;
+  padding: 2px 8px;
+  font-size: 10.5px;
   color: var(--text-dim);
-  border-color: var(--border);
+  background: var(--bg);
 }
 
 .copied {
+  border-color: #cbdfd3;
+  background: var(--ok-soft);
   color: var(--ok);
-  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
 }

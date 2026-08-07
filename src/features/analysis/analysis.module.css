@@ -18,8 +18,12 @@
 }
 
 .field > span {
-  color: var(--text-dim);
-  font-size: 0.8rem;
+  font-family: var(--condensed);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 
 .timeline {
@@ -32,10 +36,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid var(--border);
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius);
-  background: var(--bg-sunken);
+  /* Panel gövdesi beyaz; satırlar kağıt zeminle geri çekiliyor. */
+  background: var(--bg);
 }
 
 .eventStage {
@@ -53,10 +58,11 @@
 
 .warning {
   padding: 0.5rem 0.65rem;
-  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border: 1px solid #ebd2c5;
   border-radius: var(--radius);
+  background: var(--warn-soft);
   color: var(--warn);
-  font-size: 0.85rem;
+  font-size: 12.5px;
 }
 
 .counts {

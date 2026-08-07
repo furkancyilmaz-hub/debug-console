@@ -9,7 +9,7 @@ interface EmptyProps {
 export function Empty({ title = 'Kayıt yok', hint }: EmptyProps) {
   return (
     <div className={styles.block}>
-      <span>{title}</span>
+      <span className={styles.title}>{title}</span>
       {hint !== undefined && <span className={styles.hint}>{hint}</span>}
     </div>
   )

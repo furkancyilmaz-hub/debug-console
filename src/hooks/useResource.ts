@@ -28,8 +28,10 @@ type ResourceAction<T> =
 function reducer<T>(state: ResourceState<T>, action: ResourceAction<T>): ResourceState<T> {
   switch (action.type) {
     case 'start':
-      // Yenilerken eldeki veri korunur; ekran boşalıp geri dolmaz.
-      return { status: 'loading', data: state.status === 'success' ? state.data : null, error: null }
+      // Yenilerken eldeki veri korunur; ekran boşalıp geri dolmaz. Zaten
+      // yükleniyorken gelen ikinci istek de elde olanı düşürmez — hızlı filtre
+      // değişiminde tablo yapısı yerinde kalsın.
+      return { status: 'loading', data: state.data, error: null }
     case 'success':
       return { status: 'success', data: action.data, error: null }
     case 'error':
