@@ -1,0 +1,125 @@
+.card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Tablonun adı ekran okuyucuya gider, göze görünmez. */
+.caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.table thead th {
+  font-family: var(--condensed);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+}
+
+.sortButton:hover:not(:disabled) {
+  color: var(--text);
+  border-color: transparent;
+}
+
+.caret {
+  color: var(--accent);
+  font-size: 8px;
+}
+
+.cell {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+
+.table tbody tr:last-child .cell {
+  border-bottom: 0;
+}
+
+.numeric {
+  text-align: right;
+}
+
+.cell.numeric {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: var(--bg);
+}
+
+/* Yükleniyor/boş/hata gövdenin tamamını kaplar; başlıklar yerinde kalır. */
+.stateCell {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.skeleton {
+  display: block;
+  height: 11px;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    90deg,
+    var(--border-soft) 25%,
+    var(--border) 50%,
+    var(--border-soft) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Eski satırlar yeni cevap gelene kadar duruyor, sadece geri çekiliyor. */
+.stale {
+  opacity: 0.55;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--border-soft);
+  }
+}

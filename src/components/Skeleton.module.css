@@ -5,9 +5,15 @@
 }
 
 .line {
-  height: 0.85rem;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--bg-sunken) 25%, var(--border) 50%, var(--bg-sunken) 75%);
+  display: block;
+  height: 11px;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    90deg,
+    var(--border-soft) 25%,
+    var(--border) 50%,
+    var(--border-soft) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }
@@ -21,6 +27,6 @@
 @media (prefers-reduced-motion: reduce) {
   .line {
     animation: none;
-    background: var(--bg-sunken);
+    background: var(--border-soft);
   }
 }
