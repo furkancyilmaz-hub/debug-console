@@ -1,0 +1,11 @@
+.button {
+  padding: 0.15rem 0.45rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+
+.copied {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+}
