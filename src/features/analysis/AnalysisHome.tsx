@@ -7,8 +7,7 @@ import { Loading } from '../../components/Loading'
 import { Notice } from '../../components/Notice'
 import { Panel } from '../../components/Panel'
 import { useAnalysis } from './analysisContext'
-import { AnalysisEmptyResult } from './AnalysisEmptyResult'
-import { ReportSummary } from './ReportSummary'
+import { ReportPanel } from './ReportPanel'
 import { StageList } from './StageList'
 import { TimeRangePicker } from './TimeRangePicker'
 import { initialRangeForm, rangeFormReducer, validateRange } from './analysisForm'
@@ -139,10 +138,7 @@ export function AnalysisHome() {
         }
       >
         {report !== null ? (
-          <>
-            <ReportSummary report={report} />
-            <AnalysisEmptyResult report={report} />
-          </>
+          <ReportPanel report={report} />
         ) : running ? (
           <Loading label="Analiz sürüyor…" />
         ) : (
