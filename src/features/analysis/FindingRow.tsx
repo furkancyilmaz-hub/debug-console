@@ -9,6 +9,8 @@ interface FindingRowProps {
   finding: Finding
   open: boolean
   showAi: boolean
+  /** Kâğıtta akordeon yok: yazdırırken satır tıklanmadan da açık çizilir. */
+  forceOpen: boolean
   onToggle: (findingId: string) => void
 }
 
@@ -19,9 +21,10 @@ interface FindingRowProps {
  * Satırdaki her şey ölçüm — endpoint, tablo çifti, tekrar sayısı, güven.
  * Model metni burada görünmüyor, yalnızca açılan gövdede.
  */
-function Row({ finding, open, showAi, onToggle }: FindingRowProps) {
+function Row({ finding, open, showAi, forceOpen, onToggle }: FindingRowProps) {
   const bodyId = `finding-body-${finding.findingId}`
-  const headClass = open ? `${styles.head} ${styles.headOpen}` : styles.head
+  const expanded = open || forceOpen
+  const headClass = expanded ? `${styles.head} ${styles.headOpen}` : styles.head
   const countClass =
     finding.confidence === 'HIGH' ? `${styles.count} ${styles.countHigh}` : styles.count
 
@@ -31,10 +34,10 @@ function Row({ finding, open, showAi, onToggle }: FindingRowProps) {
         type="button"
         className={headClass}
         onClick={() => onToggle(finding.findingId)}
-        aria-expanded={open}
+        aria-expanded={expanded}
         aria-controls={bodyId}
       >
-        <span className={styles.caret}>{open ? '▼' : '▶'}</span>
+        <span className={styles.caret}>{expanded ? '▼' : '▶'}</span>
         <span className={styles.endpoint} title={finding.endpoint}>
           {finding.endpoint}
         </span>
@@ -47,9 +50,9 @@ function Row({ finding, open, showAi, onToggle }: FindingRowProps) {
         </span>
       </button>
 
-      {open && (
+      {expanded && (
         <div className={styles.body} id={bodyId}>
-          <FindingDetail finding={finding} showAi={showAi} />
+          <FindingDetail finding={finding} showAi={showAi} printing={forceOpen} />
         </div>
       )}
     </div>

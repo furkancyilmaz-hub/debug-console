@@ -390,3 +390,49 @@
     transition: none;
   }
 }
+
+/* ── kâğıt ────────────────────────────────────────────── */
+
+/* Ekranda panel başlığı bağlamı veriyor; kâğıtta belgenin kendi başlığı gerek. */
+.printHead {
+  display: none;
+}
+
+@media print {
+  .printHead {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+
+  /* Akordeon oku kâğıtta anlamsız: her bulgu zaten açık. */
+  .caret {
+    visibility: hidden;
+  }
+
+  .head,
+  .headOpen {
+    background: none;
+  }
+
+  /* Bir bulgu iki sayfaya bölünmesin; ölçüm ile yorumu ayrı sayfalara
+     düşmek raporun okunuşunu bozuyor. */
+  .finding {
+    break-inside: avoid;
+  }
+
+  .measure,
+  .ai,
+  .fix {
+    break-inside: avoid;
+  }
+
+  /* Zeminler yazıcıda basılsın diye; ölçüm/yorum ayrımı renkle de duruyor. */
+  .ai,
+  .summary,
+  .tile,
+  .mcell {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

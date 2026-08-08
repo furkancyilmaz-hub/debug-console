@@ -84,3 +84,23 @@
   margin: 0 auto;
   padding: 20px 20px 26px;
 }
+
+/* Kabuğun viewport kilidi kâğıtta içeriği tek sayfaya kırpıyor: yükseklik ve
+   kaydırma serbest bırakılıyor, genişlik sınırı kalkıyor. */
+@media print {
+  .app {
+    height: auto;
+    display: block;
+  }
+
+  .main {
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+  }
+}

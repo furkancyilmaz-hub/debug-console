@@ -6,6 +6,7 @@ import { ErrorBox } from '../../components/ErrorBox'
 import { Loading } from '../../components/Loading'
 import { Notice } from '../../components/Notice'
 import { Panel } from '../../components/Panel'
+import { usePrintReport } from '../../hooks/usePrintReport'
 import { useAnalysis } from './analysisContext'
 import { ReportPanel } from './ReportPanel'
 import { StageList } from './StageList'
@@ -72,43 +73,54 @@ export function AnalysisHome() {
   const { failure, warning, report } = state
   const notice = failure === null ? null : failureText(failure)
 
+  // İnen dosyanın adı buradan geliyor; analiz id'si raporu tanınır kılıyor.
+  const printJob = usePrintReport(
+    report === null ? 'n1-analizi' : `n1-analizi-${report.analysisId}`,
+  )
+
   return (
     <div className={styles.screen}>
-      <Panel
-        title="N+1 analizi"
-        description="Seçilen aralıktaki SELECT loglarından potansiyel N+1 desenleri."
-        actions={
-          state.analysisId !== null ? (
-            <button
-              type="button"
-              onClick={() => {
-                reset()
-                navigate('/analysis', { replace: true })
-              }}
-            >
-              Temizle
+      {/* Aralık formu kâğıda gitmiyor: PDF raporun kendisi, kontrolleri değil.
+          Aşamalar kalıyor — analizin gerçekten çalıştığının kanıtı. */}
+      <div data-print="hide">
+        <Panel
+          title="N+1 analizi"
+          description="Seçilen aralıktaki SELECT loglarından potansiyel N+1 desenleri."
+          actions={
+            state.analysisId !== null ? (
+              <button
+                type="button"
+                onClick={() => {
+                  reset()
+                  navigate('/analysis', { replace: true })
+                }}
+              >
+                Temizle
+              </button>
+            ) : undefined
+          }
+        >
+          <form className={styles.form} onSubmit={(event) => void submit(event)}>
+            <TimeRangePicker state={form} dispatch={dispatchForm} disabled={running} />
+            <button type="submit" className={styles.run} disabled={running}>
+              {running ? 'Analiz sürüyor…' : 'Analiz et'}
             </button>
-          ) : undefined
-        }
-      >
-        <form className={styles.form} onSubmit={(event) => void submit(event)}>
-          <TimeRangePicker state={form} dispatch={dispatchForm} disabled={running} />
-          <button type="submit" className={styles.run} disabled={running}>
-            {running ? 'Analiz sürüyor…' : 'Analiz et'}
-          </button>
-        </form>
+          </form>
 
-        {form.error !== null && (
-          <Notice tone="warn" label="geçersiz aralık" message={form.error} />
-        )}
+          {form.error !== null && (
+            <Notice tone="warn" label="geçersiz aralık" message={form.error} />
+          )}
 
-        {/* Agent'ın kendi cevabı varsa durum koduyla birlikte `ErrorBox`;
-            durum kodu olmayan hatalar `Notice` ile. */}
-        {failure !== null && failure.kind === 'start-failed' && <ErrorBox error={failure.error} />}
-        {notice !== null && (
-          <Notice tone="danger" label={notice.label} message={notice.message} />
-        )}
-      </Panel>
+          {/* Agent'ın kendi cevabı varsa durum koduyla birlikte `ErrorBox`;
+              durum kodu olmayan hatalar `Notice` ile. */}
+          {failure !== null && failure.kind === 'start-failed' && (
+            <ErrorBox error={failure.error} />
+          )}
+          {notice !== null && (
+            <Notice tone="danger" label={notice.label} message={notice.message} />
+          )}
+        </Panel>
+      </div>
 
       <Panel
         title="Aşamalar"
@@ -130,15 +142,15 @@ export function AnalysisHome() {
       <Panel
         title="Rapor"
         actions={
-          state.analysisId !== null ? (
-            <button type="button" onClick={refreshReport}>
-              Raporu getir
+          report !== null ? (
+            <button type="button" onClick={printJob.print} data-print="hide">
+              PDF indir
             </button>
           ) : undefined
         }
       >
         {report !== null ? (
-          <ReportPanel report={report} />
+          <ReportPanel report={report} printing={printJob.printing} />
         ) : running ? (
           <Loading label="Analiz sürüyor…" />
         ) : (

@@ -9,6 +9,8 @@ import styles from './report.module.css'
 
 interface ReportPanelProps {
   report: AnalysisReport
+  /** Yazdırma sürerken rapor kâğıda hazırlanır: bütün bulgular açılır. */
+  printing: boolean
 }
 
 /**
@@ -19,7 +21,7 @@ interface ReportPanelProps {
  * Tespitin deterministik olduğu iddiası ekranda böyle kanıtlanıyor — ayrıca
  * agent'ta `llm.enabled: false` ile gelen nullable yolun görsel karşılığı bu.
  */
-export function ReportPanel({ report }: ReportPanelProps) {
+export function ReportPanel({ report, printing }: ReportPanelProps) {
   const [showAi, setShowAi] = useState(true)
 
   // Kopyalanacak metin her render'da baştan kurulmasın; rapor uzun olabiliyor.
@@ -27,7 +29,11 @@ export function ReportPanel({ report }: ReportPanelProps) {
 
   return (
     <div>
-      <div className={styles.toolbar}>
+      {/* Kâğıtta panel başlığı "Rapor" diyor; belgenin neyin raporu olduğu
+          en üstte yazılı olsun. Ekranda görünmüyor. */}
+      <h2 className={styles.printHead}>N+1 analizi — {report.analysisId}</h2>
+
+      <div className={styles.toolbar} data-print="hide">
         <button
           type="button"
           className={styles.switch}
@@ -45,7 +51,7 @@ export function ReportPanel({ report }: ReportPanelProps) {
       </div>
 
       <ReportSummary report={report} />
-      <FindingList findings={report.findings} showAi={showAi} />
+      <FindingList findings={report.findings} showAi={showAi} printing={printing} />
       <AnalysisEmptyResult report={report} />
 
       {!showAi && report.counts.findings > 0 && (

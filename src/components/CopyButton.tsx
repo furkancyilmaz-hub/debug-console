@@ -35,6 +35,8 @@ export function CopyButton({ value, label = 'Kopyala' }: CopyButtonProps) {
       type="button"
       className={`${styles.button} ${copied ? styles.copied : ''}`}
       onClick={copy}
+      // Kopyalama düğmesinin kâğıtta işi yok.
+      data-print="hide"
     >
       {copied ? 'Kopyalandı' : label}
     </button>

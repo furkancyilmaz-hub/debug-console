@@ -8,6 +8,8 @@ import styles from './report.module.css'
 interface FindingListProps {
   findings: readonly Finding[]
   showAi: boolean
+  /** Yazdırma sürerken bütün bulgular açık çizilir. */
+  printing: boolean
 }
 
 /** Açık bulgu adreste durur; paylaşılan bağlantı o bulguyu açık getirir. */
@@ -21,7 +23,7 @@ const OPEN_PARAM = 'finding'
  * `AnalysisHome` gezinirken `location.search`'ü koruduğu için `?from`/`?to`
  * ile çakışmıyor.
  */
-export function FindingList({ findings, showAi }: FindingListProps) {
+export function FindingList({ findings, showAi, printing }: FindingListProps) {
   const [searchParams, setSearchParams] = useSearchParams()
   const openId = searchParams.get(OPEN_PARAM)
 
@@ -54,6 +56,7 @@ export function FindingList({ findings, showAi }: FindingListProps) {
           finding={finding}
           open={finding.findingId === openId}
           showAi={showAi}
+          forceOpen={printing}
           onToggle={toggle}
         />
       ))}

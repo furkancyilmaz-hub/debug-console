@@ -8,6 +8,8 @@ interface FindingDetailProps {
   finding: Finding
   /** "AI yorumları" anahtarı. Kapalıyken ölçüm bloğu hiç değişmiyor. */
   showAi: boolean
+  /** Yazdırma sürüyor: katlanmış bölümler kâğıtta açık basılır. */
+  printing: boolean
 }
 
 /**
@@ -17,7 +19,7 @@ interface FindingDetailProps {
  * metni ayrıca kendi kapsayıcısında duruyor (`.ai`) — kullanıcı hangi bilginin
  * ölçüm hangisinin yorum olduğunu kapsayıcıya bakarak ayırt edebiliyor.
  */
-export function FindingDetail({ finding, showAi }: FindingDetailProps) {
+export function FindingDetail({ finding, showAi, printing }: FindingDetailProps) {
   const lines = sqlLines(finding.normalizedQuery)
 
   return (
@@ -68,7 +70,7 @@ export function FindingDetail({ finding, showAi }: FindingDetailProps) {
         <div className={styles.ai}>
           <span className={styles.aiLabel}>AI yorumu</span>
           <p className={styles.aiText}>{finding.explanation}</p>
-          {finding.suggestion !== null && <FixCard suggestion={finding.suggestion} />}
+          {finding.suggestion !== null && <FixCard suggestion={finding.suggestion} printing={printing} />}
         </div>
       )}
 
@@ -76,7 +78,7 @@ export function FindingDetail({ finding, showAi }: FindingDetailProps) {
       {showAi && !hasText(finding.explanation) && finding.suggestion !== null && (
         <div className={styles.ai}>
           <span className={styles.aiLabel}>AI önerisi</span>
-          <FixCard suggestion={finding.suggestion} />
+          <FixCard suggestion={finding.suggestion} printing={printing} />
         </div>
       )}
     </>
