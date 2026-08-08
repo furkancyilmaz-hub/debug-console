@@ -17,6 +17,12 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       port: 5173,
+      // Port sabit: agent'ın CORS izin listesinde yalnızca 5173 var. Port
+      // doluyken Vite sessizce 5174'e kaysa proxy tarayıcının `Origin`
+      // başlığını olduğu gibi iletir ve agent 403 "Invalid CORS request"
+      // döner — kimlik hatası gibi görünen, aslında port hatası olan bir
+      // arıza. Sessiz kayma yerine açık hata.
+      strictPort: true,
       proxy: {
         '/demo': {
           target: target(env.DEMO_TARGET, 'http://localhost:8080'),
