@@ -1,0 +1,214 @@
+/* Alt denetçi dock'u — kaynak: `docs/mockup.html` `.dock`. */
+
+.dock {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg-raised);
+  border-top: 1px solid var(--border);
+}
+
+/* Kapalıyken yalnızca bar kalır; bar'ın kendisi özet şeridi. */
+.dockCollapsed {
+  height: 37px;
+}
+
+.handle {
+  flex-shrink: 0;
+  height: 5px;
+  margin-bottom: -1px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.handle:hover,
+.handle:focus-visible {
+  background: var(--accent-soft);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  font-family: var(--condensed);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.caret {
+  font-size: 9px;
+}
+
+.summary {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+.action {
+  padding: 3px 9px;
+  font-size: 11.5px;
+  font-weight: 400;
+}
+
+.actionOn,
+.actionOn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.primary,
+.primary:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.primary:hover:not(:disabled) {
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.rowWrap {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 62px 44px 44px 1fr 52px 130px 66px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 400;
+  animation: slide 0.22s ease-out;
+}
+
+@keyframes slide {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.row:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: transparent;
+}
+
+.rowOpen {
+  background: var(--bg);
+}
+
+.time {
+  font-family: var(--mono);
+  color: var(--text-faint);
+}
+
+.source {
+  font-family: var(--condensed);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.method {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+}
+
+.status {
+  display: flex;
+}
+
+.track {
+  height: 9px;
+  border-radius: 1px;
+  background: var(--border-soft);
+  overflow: hidden;
+}
+
+.trackFill {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+}
+
+.trackFillSlow {
+  background: var(--warn);
+}
+
+.latency {
+  text-align: right;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowSlow .latency {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 6px 76px;
+  background: var(--bg);
+}
+
+.correlation {
+  font-size: 10.5px;
+  color: var(--text-dim);
+}

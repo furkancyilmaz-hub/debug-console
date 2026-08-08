@@ -1,0 +1,35 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.row input,
+.row select {
+  width: 100%;
+}
+
+/* Hatalı kontrol yalnızca renkle değil, arka planla da ayrışıyor. */
+.row input[aria-invalid='true'],
+.row select[aria-invalid='true'] {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.error {
+  display: flex;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--danger);
+}
+
+.error::before {
+  content: '▲';
+  font-size: 8px;
+  line-height: 1.5;
+}
