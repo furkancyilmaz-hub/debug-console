@@ -163,6 +163,7 @@ export function RequestInspector() {
       className={state.collapsed ? `${styles.dock} ${styles.dockCollapsed}` : styles.dock}
       style={state.collapsed ? undefined : { height: state.height }}
       aria-label="İstek denetçisi"
+      data-print="hide"
     >
       {!state.collapsed && (
         <div

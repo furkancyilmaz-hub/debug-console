@@ -4,6 +4,8 @@ import styles from './report.module.css'
 
 interface FixCardProps {
   suggestion: FixProposal
+  /** Kâğıtta katlama yok: alternatifler açık basılır. */
+  printing: boolean
 }
 
 /**
@@ -13,7 +15,7 @@ interface FixCardProps {
  * `rationale` bilerek gösterilmiyor: `explanation` zaten üstteki bölümde aynı
  * işi yapıyor, ikisi yan yana aynı şeyi iki kez söylüyor.
  */
-export function FixCard({ suggestion }: FixCardProps) {
+export function FixCard({ suggestion, printing }: FixCardProps) {
   const { action, expectedResult, risk, alternatives } = suggestion
 
   return (
@@ -28,9 +30,11 @@ export function FixCard({ suggestion }: FixCardProps) {
       </dl>
 
       {/* Alternatifler katlanabilir: bulgu sayısı artınca liste okunmaz hâle
-          gelmesin. `<details>` native — açık/kapalı için state tutulmuyor. */}
+          gelmesin. `<details>` native — açık/kapalı için state tutulmuyor.
+          Kâğıtta katlama okunamaz olurdu; yazdırırken `open` veriliyor. CSS
+          ile açmak tarayıcılar arasında güvenilir çalışmıyor. */}
       {alternatives.trim() !== '' && (
-        <details className={styles.fixAlternatives}>
+        <details className={styles.fixAlternatives} open={printing}>
           <summary>Alternatif</summary>
           <p>{alternatives}</p>
         </details>

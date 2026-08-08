@@ -32,7 +32,7 @@ export default function App() {
     <AnalysisProvider>
       <RequestLogProvider>
         <div className={styles.app}>
-          <header className={styles.topbar}>
+          <header className={styles.topbar} data-print="hide">
             <div className={styles.brand}>
               <i className={styles.brandMark}>⬡</i>
               Poliçe Konsolu

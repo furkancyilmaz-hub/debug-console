@@ -119,3 +119,30 @@ pre {
   font-family: var(--mono);
   font-size: 0.85em;
 }
+
+/*
+ * Yazdırma / PDF.
+ *
+ * `data-print="hide"` taşıyan her şey kâğıttan düşüyor: üst çubuk, istek
+ * denetçisi, aralık formu, rapor araç çubuğu, kopyalama düğmeleri. Ekranda
+ * gezinmeye yarayan hiçbir şey belgeye girmiyor.
+ */
+@media print {
+  [data-print='hide'] {
+    display: none !important;
+  }
+
+  :root {
+    font-size: 11px;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* Ekranda kaydırma `.main`'in içinde ve kabuk viewport'a kilitli; kâğıtta
+     bu kilit içeriği tek sayfaya kırpardı. */
+  @page {
+    margin: 14mm;
+  }
+}
