@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import type { FormEvent } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Panel } from '../../components/Panel'
-import { Loading } from '../../components/Loading'
-import { ErrorBox } from '../../components/ErrorBox'
 import { Empty } from '../../components/Empty'
+import { ErrorBox } from '../../components/ErrorBox'
+import { Loading } from '../../components/Loading'
+import { Notice } from '../../components/Notice'
+import { Panel } from '../../components/Panel'
 import { useAnalysis } from './analysisContext'
-import { StageTimeline } from './StageTimeline'
+import { AnalysisEmptyResult } from './AnalysisEmptyResult'
 import { ReportSummary } from './ReportSummary'
-import { defaultRange, rangeFromParams, toInstant } from './timeRange'
+import { StageList } from './StageList'
+import { TimeRangePicker } from './TimeRangePicker'
+import { initialRangeForm, rangeFormReducer, validateRange } from './analysisForm'
+import { failureText, warningText } from './failures'
 import styles from './analysis.module.css'
 
 /**
@@ -27,8 +31,8 @@ export function AnalysisHome() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const { state, start, adopt, refreshReport, reset } = useAnalysis()
-  const [range, setRange] = useState(() => rangeFromParams(searchParams) ?? defaultRange())
-  const [formError, setFormError] = useState<string | null>(null)
+  // Adres bir kez okunuyor; sonrası formun kendi durumu.
+  const [form, dispatchForm] = useReducer(rangeFormReducer, searchParams, initialRangeForm)
 
   // Adres ve durum tek yöne değil, iki yöne de eşitleniyor: adresteki id
   // devralınır; durumdaki id adreste yoksa adres yazılır.
@@ -51,32 +55,29 @@ export function AnalysisHome() {
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
-    const from = toInstant(range.from)
-    const to = toInstant(range.to)
 
-    if (from === null || to === null) {
-      setFormError('Başlangıç ve bitiş zamanı geçerli olmalı.')
-      return
-    }
-    if (from >= to) {
-      setFormError('Başlangıç, bitişten önce olmalı.')
+    const range = validateRange(form)
+    if (typeof range === 'string') {
+      dispatchForm({ type: 'rejected', message: range })
       return
     }
 
-    setFormError(null)
-    const started = await start(from, to)
+    dispatchForm({ type: 'accepted' })
+    const started = await start(range.from, range.to)
     if (started !== null) {
-      navigate(`/analysis/${started}`)
+      navigate({ pathname: `/analysis/${started}`, search: location.search }, { replace: true })
     }
   }
 
   const running = state.phase === 'starting' || state.phase === 'running'
+  const { failure, warning, report } = state
+  const notice = failure === null ? null : failureText(failure)
 
   return (
     <div className={styles.screen}>
       <Panel
-        title="Analiz aralığı"
-        description="Seçilen aralıktaki trafik agent tarafından incelenir."
+        title="N+1 analizi"
+        description="Seçilen aralıktaki SELECT loglarından potansiyel N+1 desenleri."
         actions={
           state.analysisId !== null ? (
             <button
@@ -92,39 +93,39 @@ export function AnalysisHome() {
         }
       >
         <form className={styles.form} onSubmit={(event) => void submit(event)}>
-          <label className={styles.field}>
-            <span>Başlangıç</span>
-            <input
-              type="datetime-local"
-              value={range.from}
-              onChange={(event) => setRange({ ...range, from: event.target.value })}
-              required
-            />
-          </label>
-          <label className={styles.field}>
-            <span>Bitiş</span>
-            <input
-              type="datetime-local"
-              value={range.to}
-              onChange={(event) => setRange({ ...range, to: event.target.value })}
-              required
-            />
-          </label>
-          <button type="submit" disabled={running}>
-            {running ? 'Çalışıyor…' : 'Analizi başlat'}
+          <TimeRangePicker state={form} dispatch={dispatchForm} disabled={running} />
+          <button type="submit" className={styles.run} disabled={running}>
+            {running ? 'Analiz sürüyor…' : 'Analiz et'}
           </button>
         </form>
 
-        {formError !== null && <p className={styles.warning}>{formError}</p>}
-        {state.error !== null && <ErrorBox error={state.error} />}
+        {form.error !== null && (
+          <Notice tone="warn" label="geçersiz aralık" message={form.error} />
+        )}
+
+        {/* Agent'ın kendi cevabı varsa durum koduyla birlikte `ErrorBox`;
+            durum kodu olmayan hatalar `Notice` ile. */}
+        {failure !== null && failure.kind === 'start-failed' && <ErrorBox error={failure.error} />}
+        {notice !== null && (
+          <Notice tone="danger" label={notice.label} message={notice.message} />
+        )}
       </Panel>
 
       <Panel
         title="Aşamalar"
         description={state.analysisId !== null ? `analiz ${state.analysisId}` : undefined}
       >
-        {state.streamError !== null && <p className={styles.warning}>{state.streamError}</p>}
-        <StageTimeline events={state.events} />
+        {warning !== null && (
+          <Notice
+            tone="warn"
+            label={warningText(warning).label}
+            message={warningText(warning).message}
+            actionLabel="Raporu getir"
+            onAction={refreshReport}
+          />
+        )}
+
+        <StageList stages={state.stages} />
       </Panel>
 
       <Panel
@@ -137,12 +138,15 @@ export function AnalysisHome() {
           ) : undefined
         }
       >
-        {state.report !== null ? (
-          <ReportSummary report={state.report} />
+        {report !== null ? (
+          <>
+            <ReportSummary report={report} />
+            <AnalysisEmptyResult report={report} />
+          </>
         ) : running ? (
           <Loading label="Analiz sürüyor…" />
         ) : (
-          <Empty title="Rapor yok" hint="Bir aralık seçip analizi başlat." />
+          <Empty title="Rapor yok" hint="Bir aralık seçip analizi başlatın." />
         )}
       </Panel>
     </div>
