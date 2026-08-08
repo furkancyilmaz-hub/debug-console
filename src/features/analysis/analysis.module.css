@@ -167,19 +167,7 @@
 }
 
 /* ── rapor ────────────────────────────────────────────── */
-
-.counts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.note {
-  margin-top: 0.75rem;
-  color: var(--text-faint);
-  font-size: 0.85rem;
-}
+/* Raporun kendi stilleri `report.module.css`'te; burada yalnızca boş sonuç. */
 
 .emptyResult {
   display: flex;

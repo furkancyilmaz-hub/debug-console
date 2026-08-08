@@ -1,0 +1,392 @@
+/*
+ * Rapor ekranı — kaynak: docs/mockup.html `.summary` / `.finding` / `.measure`
+ * / `.ai` / `.fix`.
+ *
+ * Buradaki en önemli kural ölçüm ile model metninin ayrımı ve bu ayrım renk
+ * kodlamasıyla değil kapsayıcıyla kuruluyor:
+ *
+ *   .measure  beyaz zemin + tam kutu + mono  → veri gibi okunur
+ *   .ai       yeşil zemin + yalnız sol çubuk → yazı gibi okunur
+ *
+ * `.ai` bloğu tamamen kaldırıldığında `.measure` kendi başına eksiksiz kalır.
+ */
+
+/* ── araç çubuğu ──────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Mockup'ın `.switch`/`.sw` anahtarı. */
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.switch:hover:not(:disabled) {
+  border-color: transparent;
+  color: var(--text);
+}
+
+.track {
+  position: relative;
+  flex-shrink: 0;
+  width: 32px;
+  height: 17px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg);
+  transition: background 0.16s, border-color 0.16s;
+}
+
+.track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  transition: left 0.16s, background 0.16s;
+}
+
+.trackOn {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.trackOn::after {
+  left: 17px;
+  background: var(--accent);
+}
+
+.copyReport {
+  margin-left: auto;
+}
+
+/* AI kapalıyken ölçümün tek başına ayakta durduğunu söyleyen not. */
+.aiOffNote {
+  margin-top: 0.75rem;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}
+
+/* ── özet ─────────────────────────────────────────────── */
+
+/*
+ * `ayrıştırılamadı` kutucuğu bilerek yok: agent o sayıyı ölçmüyor
+ * (`AnalysisCounts` = logLines/requests/queries/findings). Ekran olmayan
+ * sayıyı uydurmuyor.
+ */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 1px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--border-soft);
+  overflow: hidden;
+}
+
+.tile {
+  padding: 11px 13px;
+  background: var(--bg-raised);
+}
+
+.tileValue {
+  font-family: var(--mono);
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.tileHot {
+  color: var(--danger);
+}
+
+.tileGood {
+  color: var(--ok);
+}
+
+.tileKey {
+  margin-top: 3px;
+  font-family: var(--condensed);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.meta {
+  margin-top: 0.75rem;
+}
+
+/* ── bulgu listesi ────────────────────────────────────── */
+
+.findings {
+  margin-top: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.finding {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.finding:last-child {
+  border-bottom: 0;
+}
+
+.head {
+  display: grid;
+  grid-template-columns: 14px 1fr 190px 74px 78px;
+  gap: 11px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+  font-weight: 400;
+}
+
+.head:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--bg);
+}
+
+.headOpen {
+  background: var(--bg);
+}
+
+.caret {
+  color: var(--text-faint);
+  font-size: 9px;
+}
+
+.endpoint {
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.relation {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+/* Şiddet satırda değil sayının kendisinde: yüksek güven daha koyu. */
+.count {
+  font-family: var(--mono);
+  font-weight: 600;
+  text-align: right;
+  color: var(--warn);
+}
+
+.countHigh {
+  color: var(--danger);
+}
+
+.body {
+  padding: 0 13px 16px 38px;
+}
+
+/* ── ölçüm bloğu ──────────────────────────────────────── */
+
+.measure {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.mgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 1px;
+  background: var(--border-soft);
+}
+
+.mcell {
+  padding: 9px 11px;
+  background: var(--bg-raised);
+}
+
+.mkey {
+  margin-bottom: 2px;
+  font-family: var(--condensed);
+  font-weight: 600;
+  font-size: 9.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.mvalue {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.mvalueTight {
+  font-size: 11.5px;
+}
+
+/* Uzun SQL ekranı taşırmasın: yatay kaydırma yok, sarmalıyor. */
+.sql {
+  margin: 0;
+  padding: 10px 11px;
+  border-top: 1px solid var(--border-soft);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sql b {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.binds {
+  padding: 10px 11px;
+  border-top: 1px solid var(--border-soft);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--text-dim);
+  word-break: break-word;
+}
+
+/* ── model yorumu ─────────────────────────────────────── */
+
+.ai {
+  margin-top: 12px;
+  padding: 12px 13px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--accent-soft);
+}
+
+.aiLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--condensed);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.aiText {
+  margin-bottom: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* ── düzeltme kartı ───────────────────────────────────── */
+
+/* Yorumun içindeki somut çıktı: zemin beyaza dönüyor. */
+.fix {
+  padding: 9px 11px;
+  border: 1px solid #cbd8cf;
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.fixAction {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.fixMeta {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 3px 11px;
+  margin: 0;
+  font-size: 11.5px;
+}
+
+.fixTerm {
+  color: var(--text-faint);
+}
+
+.fixValue {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+/* Beklenen sonuç vurgulu: kartın içinde okunacak tek sayı bu. */
+.fixExpected {
+  margin: 0;
+  font-family: var(--mono);
+  color: var(--danger);
+}
+
+.fixAlternatives {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.fixAlternatives summary {
+  cursor: pointer;
+  color: var(--text-faint);
+}
+
+.fixAlternatives p {
+  margin-top: 4px;
+}
+
+.fixCopy {
+  margin-top: 8px;
+}
+
+/* Dar ekranda ilişki ve güven düşer; endpoint ile sayı kalır. */
+@media (max-width: 820px) {
+  .head {
+    grid-template-columns: 14px 1fr 66px;
+  }
+
+  .relation,
+  .confidence {
+    display: none;
+  }
+
+  .body {
+    padding-left: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .track::after {
+    transition: none;
+  }
+}
