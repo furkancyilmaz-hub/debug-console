@@ -21,9 +21,28 @@ export function toInstant(localValue: string): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString()
 }
 
+/** ISO-8601 → `datetime-local` değeri. Yokluk ve bozuk değer aynı: `null`. */
+export function fromInstant(instant: string | null): string | null {
+  if (instant === null) {
+    return null
+  }
+  const date = new Date(instant)
+  return Number.isNaN(date.getTime()) ? null : toLocalInputValue(date)
+}
+
 export interface LocalRange {
   from: string
   to: string
+}
+
+/**
+ * Adresteki `?from=…&to=…` → form aralığı. Denetçinin "bu istekleri analiz et"
+ * düğmesi bu iki parametreyi yazıyor. Biri bile okunamazsa aralık kurulmaz.
+ */
+export function rangeFromParams(params: URLSearchParams): LocalRange | null {
+  const from = fromInstant(params.get('from'))
+  const to = fromInstant(params.get('to'))
+  return from === null || to === null ? null : { from, to }
 }
 
 /** Varsayılan aralık: son 15 dakika. */

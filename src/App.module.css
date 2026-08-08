@@ -1,5 +1,7 @@
+/* Denetçi dock'u alta sabit kalsın diye kabuk viewport'a kilitli; sayfa
+   kaydırması `.main`'in içine taşındı (mockup'ın modeli). */
 .app {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -12,9 +14,6 @@
   padding: 0 20px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-raised);
-  position: sticky;
-  top: 0;
-  z-index: 1;
   flex-shrink: 0;
 }
 
@@ -71,8 +70,15 @@
   gap: 5px;
 }
 
+/* Kaydırma çubuğu ekranın kenarında dursun diye genişlik sınırı `.main`'de
+   değil içindeki sarmalayıcıda. */
 .main {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.page {
   width: 100%;
   max-width: 1080px;
   margin: 0 auto;

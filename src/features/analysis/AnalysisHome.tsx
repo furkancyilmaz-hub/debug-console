@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Panel } from '../../components/Panel'
 import { Loading } from '../../components/Loading'
 import { ErrorBox } from '../../components/ErrorBox'
@@ -8,7 +8,7 @@ import { Empty } from '../../components/Empty'
 import { useAnalysis } from './analysisContext'
 import { StageTimeline } from './StageTimeline'
 import { ReportSummary } from './ReportSummary'
-import { defaultRange, toInstant } from './timeRange'
+import { defaultRange, rangeFromParams, toInstant } from './timeRange'
 import styles from './analysis.module.css'
 
 /**
@@ -17,12 +17,17 @@ import styles from './analysis.module.css'
  * Durum `AnalysisProvider`'da tutuluyor: CRUD sekmesine geçip dönmek analizi
  * kaybettirmez. `analysisId` adreste de durduğu için yenileme ve paylaşılan
  * bağlantı çalışır.
+ *
+ * Aralık adresten de gelebilir: denetçinin "bu istekleri analiz et" düğmesi
+ * `?from=…&to=…` yazıyor. Analiz kendiliğinden başlamaz, yalnızca form dolar.
  */
 export function AnalysisHome() {
   const { analysisId } = useParams<{ analysisId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { state, start, adopt, refreshReport, reset } = useAnalysis()
-  const [range, setRange] = useState(defaultRange)
+  const [range, setRange] = useState(() => rangeFromParams(searchParams) ?? defaultRange())
   const [formError, setFormError] = useState<string | null>(null)
 
   // Adres ve durum tek yöne değil, iki yöne de eşitleniyor: adresteki id
@@ -35,9 +40,14 @@ export function AnalysisHome() {
       return
     }
     if (state.analysisId !== null) {
-      navigate(`/analysis/${state.analysisId}`, { replace: true })
+      // `search` korunuyor; yoksa adrese id yazılırken denetçiden gelen aralık
+      // düşer ve sayfa yenilenince form varsayılana dönerdi.
+      navigate(
+        { pathname: `/analysis/${state.analysisId}`, search: location.search },
+        { replace: true },
+      )
     }
-  }, [analysisId, state.analysisId, adopt, navigate])
+  }, [analysisId, state.analysisId, adopt, navigate, location.search])
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
