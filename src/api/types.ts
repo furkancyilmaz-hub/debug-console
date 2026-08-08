@@ -87,6 +87,17 @@ export interface ProposalDetailResponse extends ProposalResponse {
   customers: CustomerSummary[]
 }
 
+/**
+ * `POST /api/proposals` gövdesi. Alan adları Java DTO'sundakiyle birebir aynı:
+ * 400 cevabındaki `violations[].field` çeviri gerektirmeden forma düşsün.
+ */
+export interface ProposalCreateRequest {
+  proposalNo: string
+  status: ProposalStatus
+  issueDate: LocalDate
+  totalPremium: number
+}
+
 /* ------------------------------------------------------ api-debug-agent */
 
 export type Confidence = 'HIGH' | 'MEDIUM'

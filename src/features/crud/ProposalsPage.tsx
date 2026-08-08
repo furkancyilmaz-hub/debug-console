@@ -1,3 +1,4 @@
+import { Link, useNavigate } from 'react-router-dom'
 import { Badge } from '../../components/Badge'
 import { DataTable } from '../../components/DataTable'
 import { PageHead } from '../../components/PageHead'
@@ -49,6 +50,7 @@ const COLUMNS: readonly Column<ProposalResponse>[] = [
 ]
 
 export function ProposalsPage() {
+  const navigate = useNavigate()
   const { page, size, sort, sortParam, setPage, setSize, setSort } = useListParams(DEFAULT_SORT)
 
   const { state, reload } = useResource(
@@ -58,7 +60,15 @@ export function ProposalsPage() {
 
   return (
     <div className={styles.screen}>
-      <PageHead title="Teklifler" description="Poliçe teklifleri ve durumları" />
+      <PageHead
+        title="Teklifler"
+        description="Poliçe teklifleri ve durumları"
+        actions={
+          <Link className={styles.primary} to="/proposals/new">
+            Yeni teklif
+          </Link>
+        }
+      />
 
       <DataTable
         columns={COLUMNS}
@@ -70,6 +80,7 @@ export function ProposalsPage() {
         onRetry={reload}
         emptyTitle="Teklif yok"
         emptyHint="Bu sayfada gösterilecek kayıt bulunmuyor."
+        onRowClick={(row) => navigate(`/proposals/${row.id}`)}
         sort={sort}
         onSortChange={setSort}
         page={state.data}

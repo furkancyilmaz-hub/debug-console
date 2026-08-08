@@ -5,6 +5,8 @@ import type {
   Page,
   PageParams,
   PaymentResponse,
+  ProposalCreateRequest,
+  ProposalDetailResponse,
   ProposalResponse,
   RequestResult,
 } from './types'
@@ -22,6 +24,10 @@ export interface CustomerListParams extends PageParams {
 
 function customers(path: string) {
   return `/api/customers${path}`
+}
+
+function proposals(path: string) {
+  return `/api/proposals${path}`
 }
 
 export function listCustomers(
@@ -84,10 +90,35 @@ export function listProposals(
   params: PageParams,
   signal: AbortSignal,
 ): Promise<RequestResult<Page<ProposalResponse>>> {
-  return request<Page<ProposalResponse>>(DEMO_BASE, '/api/proposals', {
+  return request<Page<ProposalResponse>>(DEMO_BASE, proposals(''), {
     query: { ...params },
     signal,
   })
+}
+
+/** Teklifleri müşterileriyle birlikte döner. Kimliğe göre süzme yok. */
+export function listProposalDetail(
+  params: PageParams,
+  signal: AbortSignal,
+): Promise<RequestResult<Page<ProposalDetailResponse>>> {
+  return request<Page<ProposalDetailResponse>>(DEMO_BASE, proposals('/detail'), {
+    query: { ...params },
+    signal,
+  })
+}
+
+export function getProposal(
+  id: number,
+  signal: AbortSignal,
+): Promise<RequestResult<ProposalResponse>> {
+  return request<ProposalResponse>(DEMO_BASE, proposals(`/${id}`), { signal })
+}
+
+export function createProposal(
+  body: ProposalCreateRequest,
+  signal: AbortSignal,
+): Promise<RequestResult<ProposalResponse>> {
+  return request<ProposalResponse>(DEMO_BASE, proposals(''), { method: 'POST', body, signal })
 }
 
 export function listPayments(

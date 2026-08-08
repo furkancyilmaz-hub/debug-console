@@ -1,7 +1,11 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import { AnalysisProvider } from './features/analysis/AnalysisProvider'
 import { AnalysisHome } from './features/analysis/AnalysisHome'
+import { CustomerDetailPage } from './features/crud/CustomerDetailPage'
+import { CustomersOverviewPage } from './features/crud/CustomersOverviewPage'
 import { CustomersPage } from './features/crud/CustomersPage'
+import { ProposalDetailPage } from './features/crud/ProposalDetailPage'
+import { ProposalFormPage } from './features/crud/ProposalFormPage'
 import { ProposalsPage } from './features/crud/ProposalsPage'
 import styles from './App.module.css'
 
@@ -45,7 +49,13 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/proposals" replace />} />
             <Route path="/proposals" element={<ProposalsPage />} />
+            {/* Statik segmentler `:id`'den önce; adres `/proposals/new` iken
+                detay ekranı açılmasın. */}
+            <Route path="/proposals/new" element={<ProposalFormPage />} />
+            <Route path="/proposals/:id" element={<ProposalDetailPage />} />
             <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/customers/overview" element={<CustomersOverviewPage />} />
+            <Route path="/customers/:id" element={<CustomerDetailPage />} />
             <Route path="/analysis" element={<AnalysisHome />} />
             <Route path="/analysis/:analysisId" element={<AnalysisHome />} />
             <Route path="*" element={<Navigate to="/proposals" replace />} />

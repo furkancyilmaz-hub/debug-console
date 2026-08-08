@@ -41,27 +41,17 @@ function readSize(value: string | null): number {
   return match ?? DEFAULT_PAGE_SIZE
 }
 
-export interface ListParams {
-  page: number
-  size: number
-  sort: SortState
-  /** İsteğe giden hâli; `useResource` bağımlılığı olarak da bu kullanılır. */
-  sortParam: string
-  city: string
-  setPage: (page: number) => void
-  setSize: (size: number) => void
-  setSort: (sort: SortState) => void
-  setCity: (city: string) => void
-}
+/**
+ * Adres çubuğuna yazmanın tek yolu. Boş değer parametreyi siler, geçmişe yeni
+ * kayıt eklenmez.
+ *
+ * Fonksiyonel güncelleme sayesinde geri çağrı `searchParams`'a bağlı olmuyor;
+ * her render'da kimlik değiştirmiyor.
+ */
+function useParamWriter(): (changes: Record<string, string | null>) => void {
+  const [, setSearchParams] = useSearchParams()
 
-export function useListParams(defaultSort: SortState): ListParams {
-  const [searchParams, setSearchParams] = useSearchParams()
-
-  const sort = parseSort(searchParams.get('sort')) ?? defaultSort
-
-  // Fonksiyonel güncelleme sayesinde geri çağrılar `searchParams`'a bağlı
-  // olmuyor; her render'da kimlik değiştirmiyorlar.
-  const update = useCallback(
+  return useCallback(
     (changes: Record<string, string | null>) => {
       setSearchParams(
         (current) => {
@@ -80,9 +70,28 @@ export function useListParams(defaultSort: SortState): ListParams {
     },
     [setSearchParams],
   )
+}
 
-  // Boyut, sıralama ve arama değişince sayfa başa döner; yoksa kullanıcı
-  // sonuçların dışında bir sayfada kalır.
+export interface ListParams {
+  page: number
+  size: number
+  sort: SortState
+  /** İsteğe giden hâli; `useResource` bağımlılığı olarak da bu kullanılır. */
+  sortParam: string
+  setPage: (page: number) => void
+  setSize: (size: number) => void
+  setSort: (sort: SortState) => void
+}
+
+/** Her listenin ortak durumu: sayfa, boyut, sıralama. */
+export function useListParams(defaultSort: SortState): ListParams {
+  const [searchParams] = useSearchParams()
+  const update = useParamWriter()
+
+  const sort = parseSort(searchParams.get('sort')) ?? defaultSort
+
+  // Boyut ve sıralama değişince sayfa başa döner; yoksa kullanıcı sonuçların
+  // dışında bir sayfada kalır.
   const setPage = useCallback((page: number) => update({ page: String(page) }), [update])
   const setSize = useCallback(
     (size: number) => update({ size: String(size), page: null }),
@@ -92,17 +101,35 @@ export function useListParams(defaultSort: SortState): ListParams {
     (next: SortState) => update({ sort: formatSort(next), page: null }),
     [update],
   )
-  const setCity = useCallback((city: string) => update({ city, page: null }), [update])
 
   return {
     page: readPage(searchParams.get('page')),
     size: readSize(searchParams.get('size')),
     sort,
     sortParam: formatSort(sort),
-    city: searchParams.get('city') ?? '',
     setPage,
     setSize,
     setSort,
-    setCity,
   }
+}
+
+export interface QueryParam {
+  value: string
+  set: (value: string) => void
+}
+
+/**
+ * Filtre ve görünüm gibi tekil parametreler. Değişince sayfa başa döner —
+ * daraltılan sonuçta eski sayfa numarası anlamsız.
+ */
+export function useQueryParam(name: string): QueryParam {
+  const [searchParams] = useSearchParams()
+  const update = useParamWriter()
+
+  const set = useCallback(
+    (value: string) => update({ [name]: value, page: null }),
+    [update, name],
+  )
+
+  return { value: searchParams.get(name) ?? '', set }
 }
