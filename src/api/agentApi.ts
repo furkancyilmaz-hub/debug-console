@@ -4,6 +4,7 @@ import type {
   AnalysisEvent,
   AnalysisEventType,
   AnalysisReport,
+  AnalyzeRequest,
   AnalyzeResponse,
   Instant,
   RequestResult,
@@ -16,11 +17,8 @@ export function startAnalysis(
   to: Instant,
   signal: AbortSignal,
 ): Promise<RequestResult<AnalyzeResponse>> {
-  return request<AnalyzeResponse>(AGENT_BASE, '/api/analyze', {
-    method: 'POST',
-    body: { from, to },
-    signal,
-  })
+  const body: AnalyzeRequest = { from, to }
+  return request<AnalyzeResponse>(AGENT_BASE, '/api/analyze', { method: 'POST', body, signal })
 }
 
 /**

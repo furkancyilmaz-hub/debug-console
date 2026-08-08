@@ -112,7 +112,9 @@ export interface AnalysisRange {
  *
  * Uçlar tam dakikaya genişletiliyor: analiz ekranının `datetime-local`
  * girdileri dakika hassasiyetinde, yuvarlamasak baştaki ve sondaki istek
- * aralığın dışında kalırdı.
+ * aralığın dışında kalırdı. Üstüne iki uçtan birer dakika pay bırakılıyor:
+ * tarayıcının saati ile backend'in saati birkaç saniye kayabiliyor, sınırdaki
+ * istek pay olmadan aralığın dışına düşerdi.
  */
 export function analysisRange(entries: readonly RequestLogEntry[]): AnalysisRange | null {
   let earliest = Number.POSITIVE_INFINITY
@@ -130,9 +132,8 @@ export function analysisRange(entries: readonly RequestLogEntry[]): AnalysisRang
     return null
   }
 
-  const from = Math.floor(earliest / MINUTE_MS) * MINUTE_MS
-  // Aralık en az bir dakika: analiz ekranı `from < to` bekliyor.
-  const to = Math.max(Math.ceil(latest / MINUTE_MS) * MINUTE_MS, from + MINUTE_MS)
+  const from = Math.floor(earliest / MINUTE_MS) * MINUTE_MS - MINUTE_MS
+  const to = Math.ceil(latest / MINUTE_MS) * MINUTE_MS + MINUTE_MS
 
   return { from: new Date(from).toISOString(), to: new Date(to).toISOString() }
 }

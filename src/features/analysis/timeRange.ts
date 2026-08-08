@@ -35,19 +35,36 @@ export interface LocalRange {
   to: string
 }
 
-/**
- * Adresteki `?from=…&to=…` → form aralığı. Denetçinin "bu istekleri analiz et"
- * düğmesi bu iki parametreyi yazıyor. Biri bile okunamazsa aralık kurulmaz.
- */
-export function rangeFromParams(params: URLSearchParams): LocalRange | null {
-  const from = fromInstant(params.get('from'))
-  const to = fromInstant(params.get('to'))
-  return from === null || to === null ? null : { from, to }
+/** ISO çifti → form aralığı. Biri bile okunamazsa aralık kurulmaz. */
+export function rangeFromInstants(from: string | null, to: string | null): LocalRange | null {
+  const localFrom = fromInstant(from)
+  const localTo = fromInstant(to)
+  return localFrom === null || localTo === null ? null : { from: localFrom, to: localTo }
 }
 
-/** Varsayılan aralık: son 15 dakika. */
+/**
+ * Adresteki `?from=…&to=…` → form aralığı. Denetçinin "bu istekleri analiz et"
+ * düğmesi bu iki parametreyi yazıyor.
+ */
+export function rangeFromParams(params: URLSearchParams): LocalRange | null {
+  return rangeFromInstants(params.get('from'), params.get('to'))
+}
+
+/** Son `minutes` dakika. Varsayılan aralık da bu: son 15 dakika. */
 export function defaultRange(minutes = 15): LocalRange {
   const now = new Date()
   const past = new Date(now.getTime() - minutes * 60_000)
   return { from: toLocalInputValue(past), to: toLocalInputValue(now) }
 }
+
+export interface RangePreset {
+  minutes: number
+  label: string
+}
+
+/** Tek tıkla kurulan aralıklar (SP003: 5 dk, 15 dk, 1 saat). */
+export const RANGE_PRESETS: readonly RangePreset[] = [
+  { minutes: 5, label: '5 dk' },
+  { minutes: 15, label: '15 dk' },
+  { minutes: 60, label: '1 saat' },
+]
