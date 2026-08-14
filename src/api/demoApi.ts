@@ -57,6 +57,13 @@ export function listCustomerOverview(
   })
 }
 
+/**
+ * Arama ucunun birinci modu. `/api/customers/search` tam olarak iki mod kabul
+ * eder: tek başına `city`, ya da birlikte verilen `proposalId` + `identityNo`.
+ * Başka her kombinasyon `400` döner, parametreler sessizce yok sayılmaz —
+ * bu yüzden iki mod iki ayrı fonksiyon; tek fonksiyonun isteğe bağlı
+ * argümanları geçersiz bileşimi çağrı yerinde mümkün kılardı.
+ */
 export function searchCustomersByCity(
   city: string,
   params: PageParams,
@@ -64,6 +71,19 @@ export function searchCustomersByCity(
 ): Promise<RequestResult<Page<CustomerResponse>>> {
   return request<Page<CustomerResponse>>(DEMO_BASE, customers('/search'), {
     query: { city, ...params },
+    signal,
+  })
+}
+
+/** Arama ucunun ikinci modu; ikisi birlikte gider, biri tek başına `400`. */
+export function searchCustomersByIdentity(
+  proposalId: number,
+  identityNo: string,
+  params: PageParams,
+  signal: AbortSignal,
+): Promise<RequestResult<Page<CustomerResponse>>> {
+  return request<Page<CustomerResponse>>(DEMO_BASE, customers('/search'), {
+    query: { proposalId, identityNo, ...params },
     signal,
   })
 }
@@ -103,6 +123,21 @@ export function listProposalDetail(
 ): Promise<RequestResult<Page<ProposalDetailResponse>>> {
   return request<Page<ProposalDetailResponse>>(DEMO_BASE, proposals('/detail'), {
     query: { ...params },
+    signal,
+  })
+}
+
+/**
+ * Teklif numarasına göre tek teklif. `proposal_no` tekil olduğu için cevap
+ * sayfalanmaz; kayıt yoksa uç `404` döner — çağıran bunu `isNotFound` ile
+ * boş sonuca çevirir.
+ */
+export function searchProposalByNo(
+  proposalNo: string,
+  signal: AbortSignal,
+): Promise<RequestResult<ProposalResponse>> {
+  return request<ProposalResponse>(DEMO_BASE, proposals('/search'), {
+    query: { proposalNo },
     signal,
   })
 }

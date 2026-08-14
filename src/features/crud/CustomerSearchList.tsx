@@ -12,6 +12,9 @@ import styles from './crud.module.css'
 /**
  * Şehre göre aranabilen düz müşteri listesi. Arama kutusu adres çubuğunu anında
  * günceller ama isteği bekletir: yazarken her tuşta sunucuya gidilmez.
+ *
+ * Arama ucunun ikinci modu (`proposalId` + `identityNo`) burada değil teklif
+ * detayında: o mod bir teklife bağlı, bu ekranda ise ortada bir teklif yok.
  */
 
 const DEFAULT_SORT: SortState = { key: 'fullName', direction: 'asc' }
