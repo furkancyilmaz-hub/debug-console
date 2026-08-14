@@ -1,5 +1,6 @@
 import { AGENT_BASE } from './config'
-import { request, requestOptional } from './client'
+import { ApiError, request, requestOptional } from './client'
+import { parseAnalyzeResponse, parseReport } from './agentSchema'
 import type {
   AnalysisEvent,
   AnalysisEventType,
@@ -10,26 +11,56 @@ import type {
   RequestResult,
 } from './types'
 
-/** Analiz ajanının (`api-debug-agent`) uçları. Yollar yalnızca burada yazılı. */
+/**
+ * Analiz ajanının (`api-debug-agent`) uçları. Yollar yalnızca burada yazılı.
+ *
+ * Gövdeler `unknown` olarak isteniyor ve `agentSchema` ile doğrulanıyor: biçimi
+ * tutmayan bir cevap ekrana çıkmadan `ApiError`'a çevriliyor, çağıran ekran
+ * bunu diğer hatalardan ayırt etmek zorunda kalmıyor.
+ */
 
-export function startAnalysis(
+export async function startAnalysis(
   from: Instant,
   to: Instant,
   signal: AbortSignal,
 ): Promise<RequestResult<AnalyzeResponse>> {
   const body: AnalyzeRequest = { from, to }
-  return request<AnalyzeResponse>(AGENT_BASE, '/api/analyze', { method: 'POST', body, signal })
+  const result = await request<unknown>(AGENT_BASE, '/api/analyze', {
+    method: 'POST',
+    body,
+    signal,
+  })
+
+  const started = parseAnalyzeResponse(result.data)
+  if (started === null) {
+    throw new ApiError(result.status, 'Agent analiz kimliği döndürmedi; cevabı okunamadı.')
+  }
+  return { ...result, data: started }
 }
 
 /**
  * Tamamlanmış rapor. Analiz sürerken uç `202` + boş gövde döndüğü için `data`
  * `null` gelebilir; bu bir hata değil, "henüz bitmedi" demek.
+ *
+ * Gövde dolu ama eksik geldiğinde `null` dönmüyoruz — o "bitmedi" ile
+ * karışırdı; hata olarak fırlatılıyor.
  */
-export function getReport(
+export async function getReport(
   analysisId: string,
   signal: AbortSignal,
 ): Promise<RequestResult<AnalysisReport | null>> {
-  return requestOptional<AnalysisReport>(AGENT_BASE, `/api/analyze/${analysisId}`, { signal })
+  const result = await requestOptional<unknown>(AGENT_BASE, `/api/analyze/${analysisId}`, {
+    signal,
+  })
+  if (result.data === null) {
+    return { ...result, data: null }
+  }
+
+  const report = parseReport(result.data)
+  if (report === null) {
+    throw new ApiError(result.status, 'Agent raporu beklenmeyen biçimde döndü; okunamadı.')
+  }
+  return { ...result, data: report }
 }
 
 const EVENT_TYPES: readonly AnalysisEventType[] = [

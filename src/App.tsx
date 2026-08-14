@@ -1,4 +1,5 @@
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { AnalysisProvider } from './features/analysis/AnalysisProvider'
 import { AnalysisHome } from './features/analysis/AnalysisHome'
 import { CustomerDetailPage } from './features/crud/CustomerDetailPage'
@@ -28,6 +29,10 @@ function tabClass({ isActive }: { isActive: boolean }): string {
 }
 
 export default function App() {
+  // Sınırın sıfırlanma anahtarı: başka bir ekrana geçmek hatayı da temizler,
+  // yoksa kullanıcı sekme değiştirse bile hata kutusuyla baş başa kalırdı.
+  const { pathname } = useLocation()
+
   return (
     <AnalysisProvider>
       <RequestLogProvider>
@@ -55,20 +60,24 @@ export default function App() {
 
           <main className={styles.main}>
             <div className={styles.page}>
-              <Routes>
-                <Route path="/" element={<Navigate to="/proposals" replace />} />
-                <Route path="/proposals" element={<ProposalsPage />} />
-                {/* Statik segmentler `:id`'den önce; adres `/proposals/new` iken
-                    detay ekranı açılmasın. */}
-                <Route path="/proposals/new" element={<ProposalFormPage />} />
-                <Route path="/proposals/:id" element={<ProposalDetailPage />} />
-                <Route path="/customers" element={<CustomersPage />} />
-                <Route path="/customers/overview" element={<CustomersOverviewPage />} />
-                <Route path="/customers/:id" element={<CustomerDetailPage />} />
-                <Route path="/analysis" element={<AnalysisHome />} />
-                <Route path="/analysis/:analysisId" element={<AnalysisHome />} />
-                <Route path="*" element={<Navigate to="/proposals" replace />} />
-              </Routes>
+              {/* Son savunma hattı: hangi ekranda olursa olsun yakalanmayan bir
+                  render hatası uygulamayı beyaz sayfaya düşürmesin. */}
+              <ErrorBoundary scope="screen" resetKey={pathname}>
+                <Routes>
+                  <Route path="/" element={<Navigate to="/proposals" replace />} />
+                  <Route path="/proposals" element={<ProposalsPage />} />
+                  {/* Statik segmentler `:id`'den önce; adres `/proposals/new` iken
+                      detay ekranı açılmasın. */}
+                  <Route path="/proposals/new" element={<ProposalFormPage />} />
+                  <Route path="/proposals/:id" element={<ProposalDetailPage />} />
+                  <Route path="/customers" element={<CustomersPage />} />
+                  <Route path="/customers/overview" element={<CustomersOverviewPage />} />
+                  <Route path="/customers/:id" element={<CustomerDetailPage />} />
+                  <Route path="/analysis" element={<AnalysisHome />} />
+                  <Route path="/analysis/:analysisId" element={<AnalysisHome />} />
+                  <Route path="*" element={<Navigate to="/proposals" replace />} />
+                </Routes>
+              </ErrorBoundary>
             </div>
           </main>
 
