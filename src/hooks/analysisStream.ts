@@ -1,3 +1,4 @@
+import { parseReport } from '../api/agentSchema'
 import { NETWORK_ERROR_STATUS } from '../api/client'
 import type { ApiError } from '../api/client'
 import { STAGES } from '../api/types'
@@ -34,6 +35,8 @@ export type AnalysisFailure =
   | { kind: 'start-failed'; error: ApiError }
   /** Akıştan `ERROR` olayı geldi ya da rapor `FAILED` döndü. */
   | { kind: 'agent-error'; message: string }
+  /** Cevap geldi ama sözleşmeye uymuyor; çizilecek rapor yok. */
+  | { kind: 'bad-report' }
 
 /**
  * Analizi bitirmeyen aksaklıklar: analiz sunucuda sürüyor olabilir, kurtarma
@@ -95,10 +98,6 @@ export type AnalysisAction =
   | { type: 'warn'; warning: AnalysisWarning }
   | { type: 'report'; report: AnalysisReport }
   | { type: 'reset' }
-
-function isReport(value: unknown): value is AnalysisReport {
-  return typeof value === 'object' && value !== null && 'analysisId' in value && 'findings' in value
-}
 
 function readErrorMessage(payload: unknown): string {
   if (typeof payload === 'object' && payload !== null && 'message' in payload) {
@@ -172,13 +171,30 @@ function applyEvent(state: AnalysisState, event: AnalysisEvent): AnalysisState {
         })),
       }
 
-    case 'REPORT':
+    case 'REPORT': {
+      // Payload doğrulanıyor: eksik bir rapor state'e girerse hata `fetch`'te
+      // değil rapor çizilirken patlar, orası da tüm ağacı söken yer.
+      const report = parseReport(event.payload)
+      if (report === null) {
+        // `GET /api/analyze/{id}` daha önce geçerli bir rapor getirmiş olabilir;
+        // akıştaki bozuk kopya onu düşürmemeli.
+        if (base.report !== null) {
+          return { ...base, phase: 'completed', stages: settleStages(base.stages, 'done') }
+        }
+        return {
+          ...base,
+          phase: 'failed',
+          stages: settleStages(base.stages, 'failed'),
+          failure: { kind: 'bad-report' },
+        }
+      }
       return {
         ...base,
         phase: 'completed',
         stages: settleStages(base.stages, 'done'),
-        report: isReport(event.payload) ? event.payload : base.report,
+        report,
       }
+    }
 
     case 'ERROR':
       return {

@@ -2,6 +2,7 @@ import { useEffect, useReducer } from 'react'
 import type { FormEvent } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Empty } from '../../components/Empty'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { ErrorBox } from '../../components/ErrorBox'
 import { Loading } from '../../components/Loading'
 import { Notice } from '../../components/Notice'
@@ -149,13 +150,18 @@ export function AnalysisHome() {
           ) : undefined
         }
       >
-        {report !== null ? (
-          <ReportPanel report={report} printing={printJob.printing} />
-        ) : running ? (
-          <Loading label="Analiz sürüyor…" />
-        ) : (
-          <Empty title="Rapor yok" hint="Bir aralık seçip analizi başlatın." />
-        )}
+        {/* Rapor kendi sınırında: beklenmeyen bir cevap raporu çizilemez hâle
+            getirse bile aralık formu ve aşamalar ayakta kalıyor. Yeni analizde
+            `analysisId` değişip sınır kendiliğinden sıfırlanıyor. */}
+        <ErrorBoundary resetKey={state.analysisId}>
+          {report !== null ? (
+            <ReportPanel report={report} printing={printJob.printing} />
+          ) : running ? (
+            <Loading label="Analiz sürüyor…" />
+          ) : (
+            <Empty title="Rapor yok" hint="Bir aralık seçip analizi başlatın." />
+          )}
+        </ErrorBoundary>
       </Panel>
     </div>
   )

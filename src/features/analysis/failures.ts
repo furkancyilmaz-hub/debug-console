@@ -46,6 +46,14 @@ export function failureText(failure: AnalysisFailure): NoticeText | null {
     case 'agent-error':
       return { label: 'analiz başarısız', message: failure.message }
 
+    case 'bad-report':
+      return {
+        label: 'okunamayan cevap',
+        message:
+          'Agent\'tan gelen rapor beklenen biçimde değil; ekrana yazılamadı.' +
+          ' Analizi yeniden çalıştırmayı deneyin.',
+      }
+
     case 'start-failed':
       return null
   }
