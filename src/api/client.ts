@@ -39,6 +39,14 @@ export function isAbortError(error: unknown): boolean {
 }
 
 /**
+ * Aranan kayıt yok. Arama uçlarında bu bir arıza değil boş sonuçtur; çağıran
+ * ekran `ErrorBox` yerine "bulunamadı" gösterebilsin diye ayrı bir yordam.
+ */
+export function isNotFound(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404
+}
+
+/**
  * Beklenmeyen bir throw'u da `ApiError`'a çevirir; hook'lar tek tip hata görür.
  */
 export function toApiError(error: unknown): ApiError {
