@@ -34,8 +34,8 @@ function findingSection(finding: Finding, index: number, includeAi: boolean): st
     sqlBlock(finding),
   ]
 
-  if (finding.sampleBinds.length > 0) {
-    lines.push('', `Bağlanan değerler: ${finding.sampleBinds.join(', ')}`)
+  if (finding.bindValues.length > 0) {
+    lines.push('', `Bağlanan değerler: ${finding.bindValues.join(', ')}`)
   }
 
   // Model metni yalnızca varsa ve ekranda açıkken; boş alan başlık bırakmıyor.
@@ -43,12 +43,17 @@ function findingSection(finding: Finding, index: number, includeAi: boolean): st
     lines.push('', `**AI yorumu:** ${finding.explanation.trim()}`)
   }
 
+  // Ekranla aynı kural: modelin yazmadığı alan başlığını da götürüyor.
   if (includeAi && finding.suggestion !== null) {
     const { action, expectedResult, risk, alternatives } = finding.suggestion
     lines.push('', `**Öneri:** \`${action}\``, '')
     lines.push(`- Beklenen: ${expectedResult}`)
-    lines.push(`- Risk: ${risk}`)
-    lines.push(`- Alternatif: ${alternatives}`)
+    if (hasText(risk)) {
+      lines.push(`- Risk: ${risk.trim()}`)
+    }
+    if (hasText(alternatives)) {
+      lines.push(`- Alternatif: ${alternatives.trim()}`)
+    }
   }
 
   return lines.join('\n')

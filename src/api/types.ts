@@ -110,13 +110,19 @@ export type Stage = 'loglar' | 'ayrıştırma' | 'tespit' | 'zenginleştirme'
 
 export const STAGES: readonly Stage[] = ['loglar', 'ayrıştırma', 'tespit', 'zenginleştirme']
 
-/** Modelin yazdığı düzeltme önerisi. Zenginleştirme çalışmadıysa `null`. */
+/**
+ * Modelin yazdığı düzeltme önerisi. Zenginleştirme çalışmadıysa `null`.
+ *
+ * `action` ve `expectedResult` dolu gelmek zorunda: agent bu ikisinden biri
+ * eksikse öneriyi hiç üretmiyor, `suggestion` `null` kalıyor. Kalan üç alan
+ * modelin cevabından geldiği gibi geçiyor ve boş bırakılabiliyor.
+ */
 export interface FixProposal {
   action: string
-  rationale: string
+  rationale: string | null
   expectedResult: string
-  risk: string
-  alternatives: string
+  risk: string | null
+  alternatives: string | null
 }
 
 /**
@@ -135,7 +141,8 @@ export interface Finding {
   repeatCount: number
   distinctBindCount: number
   confidence: Confidence
-  sampleBinds: string[]
+  /** FK kolonuna bind edilen **tüm** distinct değerler, ilk görülme sırasıyla. */
+  bindValues: string[]
   parentSeq: number
   firstChildSeq: number
   explanation: string | null
