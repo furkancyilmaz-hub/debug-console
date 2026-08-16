@@ -73,7 +73,12 @@ export function useAnalysisStream(): AnalysisStream {
   )
 
   const adopt = useCallback((id: string) => dispatch({ type: 'adopted', analysisId: id }), [])
-  const reset = useCallback(() => dispatch({ type: 'reset' }), [])
+  const reset = useCallback(() => {
+    // Uçan `POST /api/analyze` iptal edilmezse cevabı `started` dispatch edip
+    // analizi geri getirir. `start` iptali `isAbortError` ile sessizce yutuyor.
+    controllerRef.current?.abort()
+    dispatch({ type: 'reset' })
+  }, [])
 
   const fetchReport = useCallback(async (id: string, signal: AbortSignal): Promise<void> => {
     try {

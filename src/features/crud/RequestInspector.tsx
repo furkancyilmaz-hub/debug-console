@@ -42,6 +42,7 @@ type Action =
   | { type: 'toggle-errors' }
   | { type: 'toggle-detail'; id: number }
   | { type: 'resize'; height: number }
+  | { type: 'cleared' }
 
 const initialState: InspectorState = {
   collapsed: false,
@@ -72,6 +73,13 @@ function reducer(state: InspectorState, action: Action): InspectorState {
 
     case 'resize':
       return { ...state, height: clampHeight(action.height) }
+
+    case 'cleared':
+      // Yükseklik ve açık/kapalı korunuyor: onlar yerleşim tercihi, veri değil.
+      // Değişecek bir şey yoksa aynı referans dönüyor ki tetik bedava olsun.
+      return state.slowOnly || state.errorsOnly || state.openId !== null
+        ? { ...state, slowOnly: false, errorsOnly: false, openId: null }
+        : state
   }
 }
 
@@ -104,6 +112,16 @@ export function RequestInspector() {
     }
     body.scrollTop = body.scrollHeight
   }, [lastId, state.collapsed])
+
+  // Kayıt kalmayınca filtre ve açık satır anlamını yitiriyor. Liste yalnızca
+  // temizlemeyle boşalıyor (kapasite budaması 50'de tutuyor), bu yüzden tetik
+  // güvenli; mount'ta çalıştığında reducer aynı state'i döndürüp geri çekiliyor.
+  // Böylece hem buradaki düğme hem analiz ekranındaki "Temizle" aynı sonucu verir.
+  useEffect(() => {
+    if (entries.length === 0) {
+      dispatch({ type: 'cleared' })
+    }
+  }, [entries.length])
 
   const onBodyScroll = (): void => {
     const body = bodyRef.current

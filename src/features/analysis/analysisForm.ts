@@ -37,6 +37,14 @@ export function initialRangeForm(params: URLSearchParams): RangeFormState {
   return { ...defaultRange(DEFAULT_MINUTES), preset: DEFAULT_MINUTES, error: null }
 }
 
+/**
+ * Formu varsayılana döndüren eylem: son 15 dakika, hata yok. Ayrı bir eylem türü
+ * gerekmiyor — `preset` zaten iki ucu da tazeliyor ve `error`'ı düşürüyor.
+ */
+export function defaultRangeAction(): RangeFormAction {
+  return { type: 'preset', minutes: DEFAULT_MINUTES, range: defaultRange(DEFAULT_MINUTES) }
+}
+
 export function rangeFormReducer(state: RangeFormState, action: RangeFormAction): RangeFormState {
   switch (action.type) {
     case 'preset':
