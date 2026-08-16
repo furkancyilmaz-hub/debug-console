@@ -164,6 +164,12 @@ export interface AnalysisReport {
   startedAt: Instant
   durationMs: number
   counts: AnalysisCounts
+  /**
+   * Log penceresi dolmuş: aralıkta bu analizin hiç görmediği satırlar var.
+   * Doluysa `counts` ve bulguların `repeatCount` değeri gerçek sayı değil,
+   * alt sınırdır.
+   */
+  logsTruncated: boolean
   findings: Finding[]
   /** Yalnızca `status === 'FAILED'` iken dolu. */
   error: string | null
