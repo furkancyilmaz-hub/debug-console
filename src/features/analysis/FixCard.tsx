@@ -1,5 +1,6 @@
 import { CopyButton } from '../../components/CopyButton'
 import type { FixProposal } from '../../api/types'
+import { hasText } from './reportView'
 import styles from './report.module.css'
 
 interface FixCardProps {
@@ -14,6 +15,10 @@ interface FixCardProps {
  *
  * `rationale` bilerek gösterilmiyor: `explanation` zaten üstteki bölümde aynı
  * işi yapıyor, ikisi yan yana aynı şeyi iki kez söylüyor.
+ *
+ * `action` ve `expectedResult` dışındaki alanlar boş gelebiliyor; yazılmayan
+ * alan satırını hiç açmıyor, `<dl>` içinde başlıksız değer ya da değersiz
+ * başlık bırakmıyoruz.
  */
 export function FixCard({ suggestion, printing }: FixCardProps) {
   const { action, expectedResult, risk, alternatives } = suggestion
@@ -25,15 +30,19 @@ export function FixCard({ suggestion, printing }: FixCardProps) {
       <dl className={styles.fixMeta}>
         <dt className={styles.fixTerm}>Beklenen</dt>
         <dd className={styles.fixExpected}>{expectedResult}</dd>
-        <dt className={styles.fixTerm}>Risk</dt>
-        <dd className={styles.fixValue}>{risk}</dd>
+        {hasText(risk) && (
+          <>
+            <dt className={styles.fixTerm}>Risk</dt>
+            <dd className={styles.fixValue}>{risk}</dd>
+          </>
+        )}
       </dl>
 
       {/* Alternatifler katlanabilir: bulgu sayısı artınca liste okunmaz hâle
           gelmesin. `<details>` native — açık/kapalı için state tutulmuyor.
           Kâğıtta katlama okunamaz olurdu; yazdırırken `open` veriliyor. CSS
           ile açmak tarayıcılar arasında güvenilir çalışmıyor. */}
-      {alternatives.trim() !== '' && (
+      {hasText(alternatives) && (
         <details className={styles.fixAlternatives} open={printing}>
           <summary>Alternatif</summary>
           <p>{alternatives}</p>

@@ -62,18 +62,36 @@ function isCounts(value: unknown): value is AnalysisCounts {
   )
 }
 
-/** Model kapalıyken `suggestion` `null` gelir; dolu geldiğinde beş alanı da yazılı olmalı. */
+/**
+ * Model kapalıyken `suggestion` bütünüyle `null` gelir. Dolu geldiğinde yalnızca
+ * `action` ve `expectedResult` garantili: agent bu ikisinden biri eksikse öneriyi
+ * hiç üretmiyor. Kalan üç alan modelin cevabından geldiği gibi geçiyor ve `null`
+ * olabiliyor — burada string şartı koşmak, modelin bir cümleyi atlamasını
+ * "rapor okunamadı"ya çevirirdi.
+ */
 function isFixProposal(value: unknown): value is FixProposal {
   return (
     isRecord(value) &&
     isString(value.action) &&
-    isString(value.rationale) &&
+    isNullableString(value.rationale) &&
     isString(value.expectedResult) &&
-    isString(value.risk) &&
-    isString(value.alternatives)
+    isNullableString(value.risk) &&
+    isNullableString(value.alternatives)
   )
 }
 
+/**
+ * Ölçülmüş alanlar katı, modelin yazdıkları toleranslı.
+ *
+ * `parentSeq`/`firstChildSeq` bilerek doğrulanmıyor: rapor ekranının hiçbir yeri
+ * okumuyor, dosyanın kuralı da yalnızca okunan alanları zorunlu tutmak.
+ *
+ * Alan adlarının kayması bu ekranı bir kez tümden karartmıştı: agent
+ * `sampleBinds`'ı `bindValues` olarak yeniden adlandırdığında her bulgu
+ * doğrulamayı geçemedi, `parseReport` `null` döndü ve bulgusu olan her analiz
+ * "okunamayan cevap" kutusuyla bitti — yani modelin yazdığı metnin ekrana
+ * çıkması gereken tek durumda.
+ */
 function isFinding(value: unknown): value is Finding {
   return (
     isRecord(value) &&
@@ -87,9 +105,7 @@ function isFinding(value: unknown): value is Finding {
     isNumber(value.repeatCount) &&
     isNumber(value.distinctBindCount) &&
     isConfidence(value.confidence) &&
-    isStringArray(value.sampleBinds) &&
-    isNumber(value.parentSeq) &&
-    isNumber(value.firstChildSeq) &&
+    isStringArray(value.bindValues) &&
     isNullableString(value.explanation) &&
     (value.suggestion === null || isFixProposal(value.suggestion))
   )

@@ -156,6 +156,7 @@ Tamamlanmış `AnalysisReport`.
 | `repeatCount` | |
 | `distinctBindCount` | benzersiz bind değeri sayısı |
 | `confidence` | `HIGH` \| `MEDIUM` |
+| `bindValues` | FK kolonuna bind edilen tüm distinct değerler, ilk görülme sırasıyla |
 
 Yukarıdakilerin hepsi **deterministik** olarak Java'da üretilir; rapor bu
 alanlarla eksiksizdir.
@@ -165,7 +166,12 @@ Model yalnızca iki **nullable** alan ekler:
 | Alan | İçerik |
 |---|---|
 | `explanation` | bulgunun insan diliyle açıklaması |
-| `suggestion` | `action`, `expectedResult`, `risk`, `alternatives` |
+| `suggestion` | `action`, `rationale`, `expectedResult`, `risk`, `alternatives` |
+
+`suggestion` dolu geldiğinde yalnızca `action` ve `expectedResult` garantilidir:
+agent bu ikisinden biri eksikse öneriyi hiç üretmez. `rationale`, `risk` ve
+`alternatives` modelin cevabından geldiği gibi geçer ve tek tek `null`
+olabilir — console bunlardan birinin boş olmasını hata saymaz.
 
 Model bulgu ekleyemez, çıkaramaz, ölçülmüş değerleri değiştiremez. Model
 katmanı kapalıyken bu iki alan boş gelir, rapor yine geçerlidir.

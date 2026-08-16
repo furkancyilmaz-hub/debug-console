@@ -59,8 +59,8 @@ export function FindingDetail({ finding, showAi, printing }: FindingDetailProps)
           ))}
         </pre>
 
-        {finding.sampleBinds.length > 0 && (
-          <div className={styles.binds}>bağlanan değerler: {finding.sampleBinds.join(', ')}</div>
+        {finding.bindValues.length > 0 && (
+          <div className={styles.binds}>bağlanan değerler: {finding.bindValues.join(', ')}</div>
         )}
       </div>
 
