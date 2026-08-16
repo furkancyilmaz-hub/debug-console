@@ -27,8 +27,8 @@ export interface Column<T> {
 export type PageInfo = Pick<Page<unknown>, 'number' | 'size' | 'totalElements' | 'totalPages'>
 
 /** Sunucuya giden sayfa boyutları; seçici bunları listeler. */
-export const PAGE_SIZES = [20, 50, 200] as const
-export const DEFAULT_PAGE_SIZE = 20
+export const PAGE_SIZES = [250, 500] as const
+export const DEFAULT_PAGE_SIZE = 250
 
 export type AriaSort = 'ascending' | 'descending' | 'none'
 
