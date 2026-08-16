@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react'
+import { startTransition, useEffect, useReducer } from 'react'
 import type { FormEvent } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Empty } from '../../components/Empty'
@@ -8,11 +8,12 @@ import { Loading } from '../../components/Loading'
 import { Notice } from '../../components/Notice'
 import { Panel } from '../../components/Panel'
 import { usePrintReport } from '../../hooks/usePrintReport'
+import { useRequestLog } from '../crud/requestLogContext'
 import { useAnalysis } from './analysisContext'
 import { ReportPanel } from './ReportPanel'
 import { StageList } from './StageList'
 import { TimeRangePicker } from './TimeRangePicker'
-import { initialRangeForm, rangeFormReducer, validateRange } from './analysisForm'
+import { defaultRangeAction, initialRangeForm, rangeFormReducer, validateRange } from './analysisForm'
 import { failureText, warningText } from './failures'
 import styles from './analysis.module.css'
 
@@ -25,6 +26,10 @@ import styles from './analysis.module.css'
  *
  * Aralık adresten de gelebilir: denetçinin "bu istekleri analiz et" düğmesi
  * `?from=…&to=…` yazıyor. Analiz kendiliğinden başlamaz, yalnızca form dolar.
+ *
+ * "Temizle" ekranın tamamını boşaltıyor — analiz durumu, aralık formu ve alttaki
+ * istek kaydı. Denetçi `App`'te, bu ekranın altında duruyor; kullanıcı için ikisi
+ * tek ekran, o yüzden düğme her ikisine birden uzanıyor.
  */
 export function AnalysisHome() {
   const { analysisId } = useParams<{ analysisId: string }>()
@@ -32,6 +37,7 @@ export function AnalysisHome() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const { state, start, adopt, refreshReport, reset } = useAnalysis()
+  const { entries, clear: clearLog } = useRequestLog()
   // Adres bir kez okunuyor; sonrası formun kendi durumu.
   const [form, dispatchForm] = useReducer(rangeFormReducer, searchParams, initialRangeForm)
 
@@ -70,9 +76,33 @@ export function AnalysisHome() {
     }
   }
 
+  const clearScreen = (): void => {
+    // Hepsi tek geçişte: `navigate` router'ın içinde `startTransition` ile
+    // çalışıyor, sıradan bir dispatch ise senkron. Ayrı commit'lere düşerlerse
+    // arada bir render oluşuyor ve yukarıdaki eşitleme efekti adreste duran eski
+    // kimliği görüp analizi geri devralıyor — temizlik anında geri alınmış
+    // görünüyordu. Aynı geçişe girince adres ve durum birlikte iniyor.
+    startTransition(() => {
+      reset()
+      clearLog()
+      dispatchForm(defaultRangeAction())
+      // `?from&to` da düşsün; form varsayılana döndü, adres onu yalanlamasın.
+      navigate('/analysis', { replace: true })
+    })
+  }
+
   const running = state.phase === 'starting' || state.phase === 'running'
   const { failure, warning, report } = state
   const notice = failure === null ? null : failureText(failure)
+
+  // Koşul `analysisId` değil: agent kapalıyken başlatma başarısız oluyor ama id
+  // hiç doğmuyor, kullanıcı da ekrandaki hatayı kaldıramıyordu.
+  const canClear =
+    state.phase !== 'idle' ||
+    report !== null ||
+    failure !== null ||
+    form.error !== null ||
+    entries.length > 0
 
   // İnen dosyanın adı buradan geliyor; analiz id'si raporu tanınır kılıyor.
   const printJob = usePrintReport(
@@ -88,13 +118,11 @@ export function AnalysisHome() {
           title="N+1 analizi"
           description="Seçilen aralıktaki SELECT loglarından potansiyel N+1 desenleri."
           actions={
-            state.analysisId !== null ? (
+            canClear ? (
               <button
                 type="button"
-                onClick={() => {
-                  reset()
-                  navigate('/analysis', { replace: true })
-                }}
+                onClick={clearScreen}
+                title="Rapor, aşamalar, aralık ve istek kaydı sıfırlanır"
               >
                 Temizle
               </button>
