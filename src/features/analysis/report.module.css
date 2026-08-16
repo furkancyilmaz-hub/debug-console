@@ -85,6 +85,21 @@
 /* ── özet ─────────────────────────────────────────────── */
 
 /*
+ * Pencere dolduğunda sayıların üstünde duran uyarı. Kutucukların *içine*
+ * girmiyor: uyarı tek bir sayıya değil, hepsine birden aitmiş gibi okunmalı.
+ */
+.truncatedNote {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #ebd2c5;
+  border-radius: var(--radius);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+/*
  * `ayrıştırılamadı` kutucuğu bilerek yok: agent o sayıyı ölçmüyor
  * (`AnalysisCounts` = logLines/requests/queries/findings). Ekran olmayan
  * sayıyı uydurmuyor.
@@ -431,6 +446,7 @@
   .ai,
   .summary,
   .tile,
+  .truncatedNote,
   .mcell {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;

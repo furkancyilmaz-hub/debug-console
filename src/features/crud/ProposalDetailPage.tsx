@@ -27,9 +27,9 @@ import styles from './crud.module.css'
  * ekranda listelenen kümeyi — bu teklifin müşterilerini — daraltıyor.
  */
 
-const LOOKUP_SIZE = 20
+const LOOKUP_SIZE = 250
 /** Bu tablo sayfalanmıyor: teklifin müşterileri tek seferde gelir. */
-const FULL_SIZE = 200
+const FULL_SIZE = 1000
 const SEARCH_DELAY_MS = 300
 
 /**

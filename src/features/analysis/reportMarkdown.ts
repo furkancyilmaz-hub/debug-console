@@ -78,6 +78,16 @@ export function reportMarkdown(report: AnalysisReport, includeAi: boolean): stri
     `| ${counts.requests} | ${counts.queries} | ${counts.findings} | ${clean} |`,
   ]
 
+  // Uyarı tablonun hemen altında: kopyalanan metni okuyan kişi sayıları
+  // gördükten sonra değil, onlara güvenmeden önce bunu okumalı.
+  if (report.logsTruncated) {
+    head.push(
+      '',
+      '> Log penceresi doldu: yukarıdaki sayılar ve tekrar adetleri alt sınırdır,' +
+        ' gerçek değer daha yüksek.',
+    )
+  }
+
   if (report.error !== null) {
     head.push('', `> Hata: ${report.error}`)
   }

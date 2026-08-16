@@ -33,6 +33,14 @@ export function ReportSummary({ report }: ReportSummaryProps) {
 
   return (
     <div>
+      {report.logsTruncated && (
+        <p className={styles.truncatedNote}>
+          Log penceresi doldu: aralıkta bu analizin görmediği satırlar var. Aşağıdaki
+          sayılar ve tekrar adetleri gerçek değeri değil, alt sınırı gösteriyor. Daha
+          dar bir aralık seçin.
+        </p>
+      )}
+
       <div className={styles.summary}>
         <div className={styles.tile}>
           <div className={styles.tileValue}>{count(counts.requests)}</div>
