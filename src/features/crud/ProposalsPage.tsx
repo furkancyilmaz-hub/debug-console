@@ -3,6 +3,7 @@ import { PageHead } from '../../components/PageHead'
 import { Segmented } from '../../components/Segmented'
 import { ProposalSearchList } from './ProposalSearchList'
 import { ProposalSummaryList } from './ProposalSummaryList'
+import { useIssueDateRange } from './issueDateRange'
 import { useQueryParam } from './listParams'
 import { proposalSegments, readProposalView } from './proposalViews'
 import styles from './crud.module.css'
@@ -15,6 +16,7 @@ import styles from './crud.module.css'
 
 export function ProposalsPage() {
   const view = readProposalView(useQueryParam('view').value)
+  const range = useIssueDateRange()
 
   return (
     <div className={styles.screen}>
@@ -28,7 +30,7 @@ export function ProposalsPage() {
         }
       />
 
-      <Segmented items={proposalSegments(view)} label="Teklif görünümü" />
+      <Segmented items={proposalSegments(view, range)} label="Teklif görünümü" />
 
       {view === 'customers' ? <ProposalSummaryList /> : <ProposalSearchList />}
     </div>

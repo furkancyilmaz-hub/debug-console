@@ -107,6 +107,12 @@ select:focus {
   border-color: var(--accent);
 }
 
+/* Pasif girdi `button:disabled` ile aynı dili konuşur. */
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 /* Mockup'taki gibi tek kural her odaklanabilir öğeyi kapsıyor — tablo
    satırları da dahil, ayrıca kural yazmaya gerek kalmıyor. */
 :focus-visible {

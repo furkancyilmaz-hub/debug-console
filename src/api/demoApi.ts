@@ -2,6 +2,7 @@ import { DEMO_BASE } from './config'
 import { request } from './client'
 import type {
   CustomerResponse,
+  LocalDate,
   Page,
   PageParams,
   PaymentResponse,
@@ -20,6 +21,16 @@ import type {
 
 export interface CustomerListParams extends PageParams {
   proposalId?: number
+}
+
+/**
+ * Teklif listelerinin tarih süzgeci (`contract.md` §2b). İki uç da alıyor; ikisi
+ * opsiyonel ve birbirinden bağımsız, verilmeyen uç sınırsız kabul ediliyor.
+ * Sınırlar dahil; `from > to` boş sayfa döndürür, hata değil.
+ */
+export interface ProposalListParams extends PageParams {
+  issueDateFrom?: LocalDate
+  issueDateTo?: LocalDate
 }
 
 function customers(path: string) {
@@ -107,7 +118,7 @@ export function listCustomerPayments(
 }
 
 export function listProposals(
-  params: PageParams,
+  params: ProposalListParams,
   signal: AbortSignal,
 ): Promise<RequestResult<Page<ProposalResponse>>> {
   return request<Page<ProposalResponse>>(DEMO_BASE, proposals(''), {
@@ -116,9 +127,9 @@ export function listProposals(
   })
 }
 
-/** Teklifleri müşterileriyle birlikte döner. Kimliğe göre süzme yok. */
+/** Teklifleri müşterileriyle birlikte döner. Kimliğe göre süzme yok, tarihe göre var. */
 export function listProposalDetail(
-  params: PageParams,
+  params: ProposalListParams,
   signal: AbortSignal,
 ): Promise<RequestResult<Page<ProposalDetailResponse>>> {
   return request<Page<ProposalDetailResponse>>(DEMO_BASE, proposals('/detail'), {
