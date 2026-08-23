@@ -7,18 +7,25 @@ import { listProposals, searchProposalByNo } from '../../api/demoApi'
 import type { ProposalResponse } from '../../api/types'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useResource } from '../../hooks/useResource'
+import { IssueDateFilter } from './IssueDateFilter'
+import { emptyRangeHint, useIssueDateRange } from './issueDateRange'
 import { useListParams, useQueryParam } from './listParams'
 import { PROPOSAL_COLUMNS } from './proposalColumns'
 import styles from './crud.module.css'
 
 /**
- * Teklif listesi ve teklif numarasına göre arama. Sayfalama, sıralama ve veri
- * tamamen sunucudan gelir.
+ * Teklif listesi, düzenleme tarihi süzgeci ve teklif numarasına göre arama.
+ * Sayfalama, sıralama ve veri tamamen sunucudan gelir.
  *
  * Arama ucu tek teklif döner ve sayfalanmaz: teklif numarası tekil. İki cevap
  * biçimi burada tek şekle indiriliyor, böylece `DataTable` farkı bilmiyor —
  * arama sonucunda `page` boş kalıyor ve sayfalama şeridi kendiliğinden
  * çizilmiyor.
+ *
+ * İki süzgeç birlikte çalışmıyor: `/api/proposals/search` yalnızca `proposalNo`
+ * kabul ediyor, tarih parametresi almıyor. Arama kutusuna yazıldığı anda tarih
+ * kutuları pasifleşiyor ve tarihler isteğe hiç girmiyor — geçersiz bileşim
+ * gönderilmiyor. Adresteki aralık **silinmiyor**; kutu boşalınca geri geliyor.
  */
 
 const DEFAULT_SORT: SortState = { key: 'issueDate', direction: 'desc' }
@@ -34,6 +41,7 @@ export function ProposalSearchList() {
   const navigate = useNavigate()
   const { page, size, sort, sortParam, setPage, setSize, setSort } = useListParams(DEFAULT_SORT)
   const proposalNo = useQueryParam('proposalNo')
+  const range = useIssueDateRange()
 
   const [input, setInput] = useState(proposalNo.value)
   const search = useDebouncedValue(input, SEARCH_DELAY_MS).trim()
@@ -44,10 +52,17 @@ export function ProposalSearchList() {
     proposalNo.set(value)
   }
 
+  // Pasiflik geciktirilmiş değere değil ham girdiye bakıyor: kutu ilk tuşta
+  // pasifleşsin, 300 ms sonra değil.
+  const searching = input !== ''
+
   const { state, reload } = useResource<ProposalRows>(
     async (signal) => {
       if (search === '') {
-        const listed = await listProposals({ page, size, sort: sortParam }, signal)
+        const listed = await listProposals(
+          { page, size, sort: sortParam, issueDateFrom: range.from, issueDateTo: range.to },
+          signal,
+        )
         return { rows: listed.data.content, page: listed.data }
       }
       try {
@@ -62,7 +77,7 @@ export function ProposalSearchList() {
         throw error
       }
     },
-    [page, size, sortParam, search],
+    [page, size, sortParam, search, range.from, range.to],
   )
 
   return (
@@ -77,7 +92,12 @@ export function ProposalSearchList() {
             onChange={(event) => handleSearchChange(event.target.value)}
           />
         </label>
+        <IssueDateFilter range={range} disabled={searching} />
       </div>
+
+      {searching && (
+        <p className={styles.hint}>Teklif numarasıyla ararken tarih aralığı uygulanmaz.</p>
+      )}
 
       <DataTable
         columns={PROPOSAL_COLUMNS}
@@ -90,7 +110,7 @@ export function ProposalSearchList() {
         emptyTitle={search === '' ? 'Teklif yok' : 'Teklif bulunamadı'}
         emptyHint={
           search === ''
-            ? 'Bu sayfada gösterilecek kayıt bulunmuyor.'
+            ? emptyRangeHint(range, 'Bu sayfada gösterilecek kayıt bulunmuyor.')
             : 'Bu numarada bir teklif yok. Numarayı kontrol edin.'
         }
         onRowClick={(row) => navigate(`/proposals/${row.id}`)}
