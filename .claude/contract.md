@@ -97,9 +97,38 @@ yok sayılmaz. `city` modu indexsiz kolonda çalışır (eksik index senaryosu),
 > log'ları N+1 analizinin temeli olduğu için (Bölüm 3) kapatılamaz; bu yüzden kimlik numarası
 > ile arama **üretim verisiyle kullanılmamalıdır**.
 
+### Teklif listelerinde tarih süzgeci
+
+`GET /api/proposals` ve `GET /api/proposals/detail` iki opsiyonel parametre alır:
+
+| Parametre | Tip | Anlam |
+|---|---|---|
+| `issueDateFrom` | ISO-8601 `LocalDate`, ör. `2025-01-03` | `issue_date >= from` |
+| `issueDateTo` | ISO-8601 `LocalDate` | `issue_date <= to` |
+
+Kurallar:
+
+- İkisi de opsiyonel ve **birbirinden bağımsız**: yalnız `from`, yalnız `to`, ikisi
+  birden ya da hiçbiri geçerli. Verilmeyen uç sınırsız kabul edilir.
+- Sınırlar **dahil** (`>=` / `<=`).
+- `from > to` ise cevap boş sayfadır; `400` değil. Bu bir doğrulama hatası değil,
+  sonuç kümesinin boş olması.
+- Bozuk tarih biçimi `400` döner (Spring'in `LocalDate` bağlaması).
+- Sayfalama ve sıralama aynen çalışmaya devam eder; süzgeç `totalElements`'i de daraltır.
+
+Süzgecin varlık sebebi ölçüm tarafında: `/api/proposals/detail` bugün yalnızca
+`Pageable` aldığı için dönen satır sayısı hep sayfa boyutuna eşit oluyor ve
+`proposal → customer` N+1'i raporda hep `250×`/`500×` görünüyor. Tarih aralığı
+sonucu sayfa boyutunun altına indirdiğinde tekrar sayısı veriden gelmeye başlıyor
+(seed'de gün başına 9-10 teklif var: bir gün ≈ `9×`, bir hafta ≈ `64×`).
+
 Başka uç yok. **Bug flag'i, toggle ya da davranış değiştiren bir kontrol
 bulunmuyor** — N+1 problemleri servisin doğal akışında oluşuyor. Bazı
 endpoint'ler naif yazılmış, bazıları optimize; ikisi de kalıcı.
+
+`issueDateFrom`/`issueDateTo` de bir davranış anahtarı değil: yalnızca hangi
+satırların döndüğünü belirler, `/detail`'in müşterileri satır satır yükleme
+davranışı değişmez.
 
 ---
 
@@ -140,7 +169,18 @@ SSE. `AnalysisEvent`:
 
 ### `GET /api/analyze/{id}`
 
-Tamamlanmış `AnalysisReport`.
+Tamamlanmış `AnalysisReport`:
+
+| Alan | İçerik |
+|---|---|
+| `analysisId` | |
+| `status` | `COMPLETED` \| `FAILED` |
+| `from` / `to` | analiz edilen aralık |
+| `startedAt` / `durationMs` | |
+| `counts` | `logLines`, `requests`, `queries`, `findings` |
+| `logsTruncated` | log penceresi dolduysa `true`; o zaman `repeatCount` gerçek sayı değil tabandır |
+| `findings` | Bölüm 5 |
+| `error` | kısa, istemciye gösterilebilir satır; `status` `FAILED` değilse `null` |
 
 ---
 
@@ -148,8 +188,9 @@ Tamamlanmış `AnalysisReport`.
 
 | Alan | İçerik |
 |---|---|
+| `findingId` | bulgunun deterministik kimliği; modelin cevabı buna göre eşleşir |
 | `correlationId` | |
-| `endpoint` | `GET /customers?withPayments=true` |
+| `endpoint` | `GET /api/proposals/detail` |
 | `parentTable` / `childTable` | |
 | `foreignKey` | `payment.customer_id -> customer.id` |
 | `normalizedQuery` | tekrarlayan child şablonu |
@@ -157,6 +198,12 @@ Tamamlanmış `AnalysisReport`.
 | `distinctBindCount` | benzersiz bind değeri sayısı |
 | `confidence` | `HIGH` \| `MEDIUM` |
 | `bindValues` | FK kolonuna bind edilen tüm distinct değerler, ilk görülme sırasıyla |
+| `parentSeq` / `firstChildSeq` | sıralama kanıtı: parent her zaman ilk child'dan önce çalışmıştır |
+
+`endpoint` yol düzeyindedir: `demo-api` istek satırına `path`'i query string'siz
+yazdığı için (Bölüm 2) agent da etiketi `method + " " + path` olarak kurar. Aynı yolun
+farklı parametrelerle — örneğin farklı `issueDateFrom`/`issueDateTo` aralıklarıyla —
+koşulmuş iki çalışması raporda `correlationId` ve `repeatCount` ile ayrılır.
 
 Yukarıdakilerin hepsi **deterministik** olarak Java'da üretilir; rapor bu
 alanlarla eksiksizdir.
@@ -175,3 +222,4 @@ olabilir — console bunlardan birinin boş olmasını hata saymaz.
 
 Model bulgu ekleyemez, çıkaramaz, ölçülmüş değerleri değiştiremez. Model
 katmanı kapalıyken bu iki alan boş gelir, rapor yine geçerlidir.
+
