@@ -1,16 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Badge } from '../../components/Badge'
 import { DataTable } from '../../components/DataTable'
-import type { Column, PageInfo, SortState } from '../../components/table'
+import type { PageInfo, SortState } from '../../components/table'
 import { isNotFound } from '../../api/client'
 import { listProposals, searchProposalByNo } from '../../api/demoApi'
 import type { ProposalResponse } from '../../api/types'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useResource } from '../../hooks/useResource'
 import { useListParams, useQueryParam } from './listParams'
-import { formatMoney } from './format'
-import { PROPOSAL_STATUS_LABEL, PROPOSAL_STATUS_TONE } from './status'
+import { PROPOSAL_COLUMNS } from './proposalColumns'
 import styles from './crud.module.css'
 
 /**
@@ -25,40 +23,6 @@ import styles from './crud.module.css'
 
 const DEFAULT_SORT: SortState = { key: 'issueDate', direction: 'desc' }
 const SEARCH_DELAY_MS = 300
-
-// Kolonlar ekranın kendi bilgisi; `DataTable` bunları tanımıyor.
-const COLUMNS: readonly Column<ProposalResponse>[] = [
-  {
-    key: 'proposalNo',
-    header: 'Teklif no',
-    sortable: true,
-    render: (row) => <code>{row.proposalNo}</code>,
-  },
-  {
-    key: 'status',
-    header: 'Durum',
-    sortable: true,
-    width: '10rem',
-    render: (row) => (
-      <Badge tone={PROPOSAL_STATUS_TONE[row.status]}>{PROPOSAL_STATUS_LABEL[row.status]}</Badge>
-    ),
-  },
-  {
-    key: 'issueDate',
-    header: 'Düzenleme',
-    sortable: true,
-    width: '10rem',
-    render: (row) => <code>{row.issueDate}</code>,
-  },
-  {
-    key: 'totalPremium',
-    header: 'Prim',
-    sortable: true,
-    align: 'right',
-    width: '11rem',
-    render: (row) => formatMoney(row.totalPremium),
-  },
-]
 
 /** Liste ile aramanın ortak şekli. Arama sonucunda sayfa bilgisi yok. */
 interface ProposalRows {
@@ -116,7 +80,7 @@ export function ProposalSearchList() {
       </div>
 
       <DataTable
-        columns={COLUMNS}
+        columns={PROPOSAL_COLUMNS}
         rows={state.data?.rows ?? []}
         rowKey={(row) => row.id}
         caption="Teklifler"
