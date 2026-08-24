@@ -8,33 +8,53 @@ import type { StageRow, StageStatus } from '../../hooks/useAnalysisStream'
  * duyarsız dosya sistemi aynı tuzağı T002_0, T002_1 ve T002_2'de kurmuştu.
  */
 
-/**
- * `STAGE_FINISHED` payload'ındaki sayıların Türkçe karşılıkları.
- *
- * Sözleşme (§4) `payload` için yalnızca "özet sayılar" diyor, anahtar adlarını
- * sabitlemiyor. Aşağıdaki adlar çalışan agent'a karşı **ölçüldü**:
- *
- *     loglar          {"logLines":179,"requests":8}
- *     ayrıştırma      {"correlationIds":10,"queries":77}
- *     tespit          {"findings":3}
- *     zenginleştirme  {"enriched":0}
- *
- * Harita yine de **tanımadığı anahtarı sessizce atlıyor**: agent yeni bir alan
- * eklerse ekran bozulmaz, o alan görünmez olur. `calls` ölçülmedi, model katmanı
- * kapalıyken çalışmadığı için mockup'a bakılarak bırakıldı.
- */
-const NOTE_LABEL: Record<string, string> = {
-  logLines: 'satır',
-  requests: 'istek',
-  correlationIds: 'istek',
-  queries: 'sorgu',
-  findings: 'bulgu',
-  enriched: 'zenginleştirildi',
-  calls: 'çağrı',
+interface NoteField {
+  key: string
+  /** `count` sonlu bir sayı bekler; `flag` yalnızca `true` iken basılır. */
+  kind: 'count' | 'flag'
+  label: string
 }
 
-/** Sayı değil ad taşıyan alan — mockup'taki "sonnet · 1 çağrı" gibi. */
-const NAME_KEYS: readonly string[] = ['model']
+/**
+ * `STAGE_FINISHED` payload'ındaki alanların Türkçe karşılıkları — **ve basılma
+ * sıraları**.
+ *
+ * Sıra buradan geliyor, payload'dan değil. Agent özet haritasını
+ * `Map.copyOf(Map.of(...))` ile kuruyor (`AnalysisEvent.stageFinished`); JDK'nın
+ * `ImmutableCollections.MapN`'i JVM açılışındaki `SALT`'a göre yineliyor, yani
+ * JSON anahtar sırası **her agent yeniden başlatmasında değişiyor**. Ölçüldü:
+ * aynı iki anahtar art arda koşularda `[queries, correlationIds]` ve
+ * `[correlationIds, queries]` olarak geldi. Payload sırasına uyulursa aşama
+ * notu bir koşuda `2.161 sorgu · 78 sorgulu istek`, diğerinde tersi çıkıyordu.
+ *
+ * Alan adları çalışan agent'a karşı ölçüldü:
+ *
+ *     loglar          {"requests":95,"logLines":5000,"truncated":true}
+ *     ayrıştırma      {"correlationIds":78,"queries":2161}
+ *     tespit          {"findings":9}
+ *     zenginleştirme  {"enriched":9}
+ *
+ * Liste yine de **tanımadığı anahtarı sessizce atlıyor**: agent yeni bir alan
+ * eklerse ekran bozulmaz, o alan görünmez olur.
+ *
+ * `correlationIds` bilerek **listede yok**. O sayı SQL üreten farklı isteklerin
+ * adedi ve `requests` ile hiç tutmuyor: `demo-crud-api` `/internal/` yollarına
+ * `REQUEST_COMPLETED` yazmıyor (`CorrelationIdFilter.isNotRecorded`) ama o
+ * isteklerin SQL'i `app_log`'a düşüyor — yani ajanın kendi log sorguları, yani
+ * önceki analizler sayıya giriyor. Kullanıcının hiç yapmadığı isteği "istek"
+ * diye göstermektense hiç göstermiyoruz; mockup'ta da bu slot istek sayısı
+ * değildi. `cleanRequestCount` aynı asimetriyi `Math.max(0, …)` ile karşılıyor.
+ */
+const NOTE_FIELDS: readonly NoteField[] = [
+  { key: 'logLines', kind: 'count', label: 'satır' },
+  { key: 'requests', kind: 'count', label: 'istek' },
+  { key: 'queries', kind: 'count', label: 'sorgu' },
+  { key: 'findings', kind: 'count', label: 'bulgu' },
+  { key: 'enriched', kind: 'count', label: 'zenginleştirildi' },
+  // Rapordaki uyarı bloğu analiz bitince çıkıyor; pencerenin dolduğunu o zamana
+  // kadar yalnızca bu parça söylüyor.
+  { key: 'truncated', kind: 'flag', label: 'pencere doldu' },
+]
 
 function asRecord(payload: unknown): Record<string, unknown> | null {
   return typeof payload === 'object' && payload !== null && !Array.isArray(payload)
@@ -43,7 +63,7 @@ function asRecord(payload: unknown): Record<string, unknown> | null {
 }
 
 /**
- * Aşamanın tek satırlık özeti: `892 satır · 4 ayrıştırılamadı`.
+ * Aşamanın tek satırlık özeti: `5.000 satır · 95 istek · pencere doldu`.
  * Okunabilir hiçbir alan yoksa `null`.
  */
 export function stageNote(payload: unknown): string | null {
@@ -53,17 +73,16 @@ export function stageNote(payload: unknown): string | null {
   }
 
   const parts: string[] = []
-  // Anahtar sırası backend'in JSON sırası; sıralamayı ona bırakıyoruz.
-  for (const [key, value] of Object.entries(record)) {
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      const label = NOTE_LABEL[key]
-      if (label !== undefined) {
-        parts.push(`${value.toLocaleString('tr-TR')} ${label}`)
+  for (const field of NOTE_FIELDS) {
+    const value = record[field.key]
+    if (field.kind === 'count') {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        parts.push(`${value.toLocaleString('tr-TR')} ${field.label}`)
       }
       continue
     }
-    if (typeof value === 'string' && value !== '' && NAME_KEYS.includes(key)) {
-      parts.push(value)
+    if (value === true) {
+      parts.push(field.label)
     }
   }
 
