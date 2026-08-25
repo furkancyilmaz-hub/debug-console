@@ -1,5 +1,7 @@
 import type { SegmentItem } from '../../components/Segmented'
-import type { IssueDateRange } from './issueDateRange'
+import type { CriteriaValues } from './criteriaDraft'
+import { ISSUE_DATE_FIELDS } from './issueDateRange'
+import type { IssueDateField } from './issueDateRange'
 
 /**
  * Teklif listesinin iki görünümü. Görünüm değişince arama parametresi düşer:
@@ -10,6 +12,9 @@ import type { IssueDateRange } from './issueDateRange'
  * (`contract.md` §2b) ve aynı aralığı iki görünümde karşılaştırmak ölçüm
  * akışının kendisi: aynı satır kümesi, farklı sorgu sayısı. Aralık taşınmasa
  * kullanıcı her geçişte yeniden yazardı.
+ *
+ * Taşınan değer **uygulanmış** aralık: adres çubuğunda ne varsa o. Sorgulanmamış
+ * bir taslak karşı görünüme sızmıyor.
  */
 
 export type ProposalView = 'list' | 'customers'
@@ -21,16 +26,15 @@ export function readProposalView(value: string): ProposalView {
   return value === CUSTOMERS_VIEW ? 'customers' : 'list'
 }
 
-function segmentPath(view: ProposalView, range: IssueDateRange): string {
+function segmentPath(view: ProposalView, dates: CriteriaValues<IssueDateField>): string {
   const query = new URLSearchParams()
   if (view === 'customers') {
     query.set('view', CUSTOMERS_VIEW)
   }
-  if (range.from !== '') {
-    query.set('issueDateFrom', range.from)
-  }
-  if (range.to !== '') {
-    query.set('issueDateTo', range.to)
+  for (const field of ISSUE_DATE_FIELDS) {
+    if (dates[field] !== '') {
+      query.set(field, dates[field])
+    }
   }
   const search = query.toString()
   return search === '' ? '/proposals' : `/proposals?${search}`
@@ -38,14 +42,14 @@ function segmentPath(view: ProposalView, range: IssueDateRange): string {
 
 export function proposalSegments(
   active: ProposalView,
-  range: IssueDateRange,
+  dates: CriteriaValues<IssueDateField>,
 ): readonly SegmentItem[] {
   return [
-    { key: 'list', label: 'Liste', to: segmentPath('list', range), active: active === 'list' },
+    { key: 'list', label: 'Liste', to: segmentPath('list', dates), active: active === 'list' },
     {
       key: 'customers',
       label: 'Müşterili',
-      to: segmentPath('customers', range),
+      to: segmentPath('customers', dates),
       active: active === 'customers',
     },
   ]

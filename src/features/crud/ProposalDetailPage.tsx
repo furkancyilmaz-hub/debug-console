@@ -9,8 +9,10 @@ import {
   searchCustomersByIdentity,
 } from '../../api/demoApi'
 import type { CustomerSummary } from '../../api/types'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useResource } from '../../hooks/useResource'
+import { CriteriaBar } from './CriteriaBar'
+import { useCriteriaDraft } from './criteriaDraft'
+import type { CriteriaValues } from './criteriaDraft'
 import { CUSTOMER_COLUMNS } from './customerColumns'
 import { DetailLayout } from './DetailLayout'
 import { formatMoney } from './format'
@@ -30,7 +32,10 @@ import styles from './crud.module.css'
 const LOOKUP_SIZE = 250
 /** Bu tablo sayfalanmıyor: teklifin müşterileri tek seferde gelir. */
 const FULL_SIZE = 1000
-const SEARCH_DELAY_MS = 300
+
+type IdentityField = 'identityNo'
+
+const NO_IDENTITY: CriteriaValues<IdentityField> = { identityNo: '' }
 
 /**
  * Müşteri listesi `/proposals/detail`'den geliyor; bu uç kimliğe göre
@@ -76,9 +81,12 @@ function ProposalDetail({ proposalId }: { proposalId: number }) {
 
   // Kimlik numarası adres çubuğuna yazılmıyor: sözleşme (§2b) o değerin
   // bind log'una düştüğünü söylüyor, URL'e koymak onu tarayıcı geçmişine ve
-  // paylaşılan bağlantılara da taşırdı.
-  const [identityInput, setIdentityInput] = useState('')
-  const identityNo = useDebouncedValue(identityInput, SEARCH_DELAY_MS).trim()
+  // paylaşılan bağlantılara da taşırdı. Uygulanmış değer bu yüzden liste
+  // ekranlarındaki gibi adreste değil, burada duruyor — taslak/uygulanmış
+  // ayrımı aynı.
+  const [applied, setApplied] = useState<CriteriaValues<IdentityField>>(NO_IDENTITY)
+  const criteria = useCriteriaDraft(applied, setApplied)
+  const identityNo = applied.identityNo
 
   const proposal = useResource(
     async (signal) => (await getProposal(proposalId, signal)).data,
@@ -129,18 +137,18 @@ function ProposalDetail({ proposalId }: { proposalId: number }) {
       <section className={styles.section}>
         <h2 className={styles.sectionLabel}>Müşteriler</h2>
 
-        <div className={styles.bar}>
+        <CriteriaBar pending={criteria.pending} onSubmit={criteria.submit}>
           <label className={styles.search}>
             <span className={styles.label}>Kimlik no</span>
             <input
               type="search"
               autoComplete="off"
-              value={identityInput}
+              value={criteria.draft.identityNo}
               placeholder="Bu teklif içinde ara"
-              onChange={(event) => setIdentityInput(event.target.value)}
+              onChange={(event) => criteria.set('identityNo', event.target.value)}
             />
           </label>
-        </div>
+        </CriteriaBar>
         <span className={styles.hint}>
           Kimlik numarası sorgunun bind parametresi olarak app_log&apos;a yazılır. Bu aramayı
           üretim verisiyle kullanmayın.

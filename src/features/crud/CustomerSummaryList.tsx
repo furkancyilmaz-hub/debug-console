@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DataTable } from '../../components/DataTable'
 import type { PageInfo, SortState } from '../../components/table'
@@ -6,10 +5,10 @@ import { isNotFound } from '../../api/client'
 import { searchProposalByNo } from '../../api/demoApi'
 import type { CustomerListParams } from '../../api/demoApi'
 import type { CustomerResponse, Page, RequestResult } from '../../api/types'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useResource } from '../../hooks/useResource'
+import { CriteriaBar } from './CriteriaBar'
 import { CUSTOMER_PAYMENT_COLUMNS } from './customerColumns'
-import { useListParams, useQueryParam } from './listParams'
+import { useCriteria, useListParams } from './listParams'
 import styles from './crud.module.css'
 
 /**
@@ -22,11 +21,12 @@ import styles from './crud.module.css'
  *
  * Kullanıcı teklif **numarası** yazıyor, liste ucu ise kimlik istiyor; numara
  * arama ucundan kimliğe çevriliyor. Adreste numara duruyor — paylaşılan bağlantı
- * insanın okuduğu değeri taşısın.
+ * insanın okuduğu değeri taşısın. Numara "Sorgula" ile uygulanıyor; yazarken
+ * ara sorgular gitmiyor.
  */
 
 const DEFAULT_SORT: SortState = { key: 'fullName', direction: 'asc' }
-const SEARCH_DELAY_MS = 300
+const FIELDS = ['proposalNo'] as const
 
 interface CustomerSummaryListProps {
   /** Modül düzeyinde tanımlı bir uç olmalı: kimliği her render'da değişmemeli. */
@@ -50,19 +50,8 @@ interface CustomerRows {
 export function CustomerSummaryList({ load, caption }: CustomerSummaryListProps) {
   const navigate = useNavigate()
   const { page, size, sort, sortParam, setPage, setSize, setSort } = useListParams(DEFAULT_SORT)
-  const proposalNo = useQueryParam('proposalNo')
-
-  // Girdinin kaynağı yerel state; adres çubuğundan tohumlanıyor. Doğrudan URL'e
-  // bağlanırsa hızlı yazımda router'ın güncellemesi yetişmiyor ve kutu her tuşta
-  // sıfırlanıyor.
-  const [input, setInput] = useState(proposalNo.value)
-  const search = useDebouncedValue(input, SEARCH_DELAY_MS).trim()
-
-  // Adres anında güncellenir (paylaşılabilir kalsın), istek geciktirilir.
-  function handleSearchChange(value: string) {
-    setInput(value)
-    proposalNo.set(value)
-  }
+  const criteria = useCriteria(FIELDS)
+  const search = criteria.applied.proposalNo
 
   const { state, reload } = useResource<CustomerRows>(
     async (signal) => {
@@ -96,19 +85,19 @@ export function CustomerSummaryList({ load, caption }: CustomerSummaryListProps)
 
   return (
     <>
-      <div className={styles.bar}>
+      <CriteriaBar pending={criteria.pending} onSubmit={criteria.submit}>
         <label className={styles.search}>
           <span className={styles.label}>Teklif no</span>
           <input
             type="search"
-            value={input}
-            onChange={(event) => handleSearchChange(event.target.value)}
+            value={criteria.draft.proposalNo}
+            onChange={(event) => criteria.set('proposalNo', event.target.value)}
           />
         </label>
         {search !== '' && total !== undefined && (
           <span className={styles.label}>{total} sonuç</span>
         )}
-      </div>
+      </CriteriaBar>
 
       <DataTable
         columns={CUSTOMER_PAYMENT_COLUMNS}

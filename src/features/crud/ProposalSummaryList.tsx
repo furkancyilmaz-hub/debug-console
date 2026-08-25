@@ -3,11 +3,11 @@ import { DataTable } from '../../components/DataTable'
 import type { SortState } from '../../components/table'
 import { listProposalDetail } from '../../api/demoApi'
 import { useResource } from '../../hooks/useResource'
+import { CriteriaBar } from './CriteriaBar'
 import { IssueDateFilter } from './IssueDateFilter'
-import { emptyRangeHint, useIssueDateRange } from './issueDateRange'
-import { useListParams } from './listParams'
+import { ISSUE_DATE_FIELDS, appliedIssueDateRange, emptyRangeHint } from './issueDateRange'
+import { useCriteria, useListParams } from './listParams'
 import { PROPOSAL_CUSTOMER_COLUMNS } from './proposalColumns'
-import styles from './crud.module.css'
 
 /**
  * Teklifler, bağlı müşterileriyle birlikte.
@@ -17,6 +17,9 @@ import styles from './crud.module.css'
  * daraltılamıyor, ama tarih aralığı sonucu sayfa boyutunun altına indirebiliyor.
  * Ölçüm tarafındaki karşılığı bu — daraltılmış aralıkta N+1 tekrar sayısı sayfa
  * boyutuna değil, o aralıktaki teklif sayısına eşit oluyor.
+ *
+ * Aralık "Sorgula" ile uygulanıyor: iki uç ayrı ayrı yazılırken arada yarım
+ * aralıkla istek gitmiyor.
  */
 
 const DEFAULT_SORT: SortState = { key: 'issueDate', direction: 'desc' }
@@ -24,7 +27,8 @@ const DEFAULT_SORT: SortState = { key: 'issueDate', direction: 'desc' }
 export function ProposalSummaryList() {
   const navigate = useNavigate()
   const { page, size, sort, sortParam, setPage, setSize, setSort } = useListParams(DEFAULT_SORT)
-  const range = useIssueDateRange()
+  const criteria = useCriteria(ISSUE_DATE_FIELDS)
+  const range = appliedIssueDateRange(criteria.applied)
 
   const { state, reload } = useResource(
     async (signal) =>
@@ -39,9 +43,9 @@ export function ProposalSummaryList() {
 
   return (
     <>
-      <div className={styles.bar}>
-        <IssueDateFilter range={range} />
-      </div>
+      <CriteriaBar pending={criteria.pending} onSubmit={criteria.submit}>
+        <IssueDateFilter values={criteria.draft} set={criteria.set} />
+      </CriteriaBar>
 
       <DataTable
         columns={PROPOSAL_CUSTOMER_COLUMNS}
