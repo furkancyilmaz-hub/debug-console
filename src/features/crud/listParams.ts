@@ -1,7 +1,9 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZES } from '../../components/table'
 import type { SortState } from '../../components/table'
+import { useCriteriaDraft } from './criteriaDraft'
+import type { CriteriaDraft, CriteriaValues } from './criteriaDraft'
 
 /**
  * Liste ekranlarının durumu adres çubuğunda durur: sayfa, boyut, sıralama ve
@@ -113,23 +115,47 @@ export function useListParams(defaultSort: SortState): ListParams {
   }
 }
 
-export interface QueryParam {
-  value: string
-  set: (value: string) => void
+/**
+ * Görünüm gibi tek başına okunan parametreler. Yazan yok: kriterler
+ * `useCriteria`'dan, sayfa ve sıralama `useListParams`'tan geçiyor.
+ */
+export function useQueryParam(name: string): string {
+  const [searchParams] = useSearchParams()
+  return searchParams.get(name) ?? ''
+}
+
+export interface Criteria<K extends string> extends CriteriaDraft<K> {
+  /** İsteğe giden, uygulanmış değerler; `useResource` bağımlılığı da bunlar. */
+  applied: CriteriaValues<K>
 }
 
 /**
- * Filtre ve görünüm gibi tekil parametreler. Değişince sayfa başa döner —
- * daraltılan sonuçta eski sayfa numarası anlamsız.
+ * Sorgu kriterleri. Kutular taslağı gösterir, adres çubuğu uygulanan sorguyu
+ * tutar; "Sorgula" ikisini eşitler ve isteği o an doğurur.
+ *
+ * Bütün alanlar tek `update` çağrısıyla yazılıyor: ara bir adres — dolayısıyla
+ * ara bir istek — oluşmuyor. Sayfa da aynı çağrıda başa dönüyor; daraltılan
+ * sonuçta eski sayfa numarası anlamsız.
+ *
+ * `names` modül düzeyinde sabit olmalı: her render'da yeni dizi verilirse
+ * `applied` kimliği boşuna değişir.
  */
-export function useQueryParam(name: string): QueryParam {
+export function useCriteria<K extends string>(names: readonly K[]): Criteria<K> {
   const [searchParams] = useSearchParams()
   const update = useParamWriter()
 
-  const set = useCallback(
-    (value: string) => update({ [name]: value, page: null }),
-    [update, name],
+  const applied = useMemo(() => {
+    const values = {} as Record<K, string>
+    for (const name of names) {
+      values[name] = searchParams.get(name) ?? ''
+    }
+    return values
+  }, [searchParams, names])
+
+  const commit = useCallback(
+    (values: CriteriaValues<K>) => update({ ...values, page: null }),
+    [update],
   )
 
-  return { value: searchParams.get(name) ?? '', set }
+  return { applied, ...useCriteriaDraft(applied, commit) }
 }

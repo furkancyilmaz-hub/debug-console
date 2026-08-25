@@ -13,7 +13,7 @@ import styles from './crud.module.css'
  */
 
 export function CustomersPage() {
-  const view = readCustomerView(useQueryParam('view').value)
+  const view = readCustomerView(useQueryParam('view'))
 
   return (
     <div className={styles.screen}>

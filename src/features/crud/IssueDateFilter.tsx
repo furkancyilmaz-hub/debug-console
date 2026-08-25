@@ -1,16 +1,22 @@
-import type { IssueDateRange } from './issueDateRange'
+import type { CriteriaValues } from './criteriaDraft'
+import { ISSUE_DATE_FIELDS } from './issueDateRange'
+import type { IssueDateField } from './issueDateRange'
 import styles from './crud.module.css'
 
 /**
  * Teklif listelerinin ortak tarih kutuları. İki görünüm de aynı süzgeci alıyor
  * (`contract.md` §2b), kutular tek yerde duruyor.
  *
- * Barı kendi çizmiyor: çağıranın barında başka kontroller de olabiliyor — düz
- * listede teklif no araması aynı satırda duruyor.
+ * Kutular taslağı gösteriyor; değer isteğe "Sorgula" ile gidiyor. Barı kendi
+ * çizmiyor: çağıranın barında başka kontroller de olabiliyor — düz listede
+ * teklif no araması ve düğme aynı satırda duruyor.
  */
 
+const [FROM, TO] = ISSUE_DATE_FIELDS
+
 interface IssueDateFilterProps {
-  range: IssueDateRange
+  values: CriteriaValues<IssueDateField>
+  set: (name: IssueDateField, value: string) => void
   /**
    * Teklif no araması etkinken pasif. `/api/proposals/search` yalnızca
    * `proposalNo` kabul ediyor; kutuyu pasifleştirmek geçersiz bileşimi kullanıcı
@@ -19,25 +25,25 @@ interface IssueDateFilterProps {
   disabled?: boolean
 }
 
-export function IssueDateFilter({ range, disabled = false }: IssueDateFilterProps) {
+export function IssueDateFilter({ values, set, disabled = false }: IssueDateFilterProps) {
   return (
     <>
       <label className={styles.search}>
         <span className={styles.label}>Düzenleme başlangıç</span>
         <input
           type="date"
-          value={range.from}
+          value={values[FROM]}
           disabled={disabled}
-          onChange={(event) => range.setFrom(event.target.value)}
+          onChange={(event) => set(FROM, event.target.value)}
         />
       </label>
       <label className={styles.search}>
         <span className={styles.label}>Bitiş</span>
         <input
           type="date"
-          value={range.to}
+          value={values[TO]}
           disabled={disabled}
-          onChange={(event) => range.setTo(event.target.value)}
+          onChange={(event) => set(TO, event.target.value)}
         />
       </label>
     </>

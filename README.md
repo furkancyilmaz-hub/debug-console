@@ -40,7 +40,7 @@ src/
 ├── features/
 │   ├── crud/     # uç listesi, istek denetçisi
 │   └── analysis/ # analiz akışı, aşama zaman çizelgesi, rapor özeti
-├── hooks/        # useResource, useMutation, useDebouncedValue
+├── hooks/        # useResource, useMutation, usePrintReport
 └── App.tsx
 ```
 

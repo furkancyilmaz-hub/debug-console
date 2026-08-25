@@ -1,5 +1,5 @@
 import type { LocalDate } from '../../api/types'
-import { useQueryParam } from './listParams'
+import type { CriteriaValues } from './criteriaDraft'
 
 /**
  * Teklif listelerinin düzenleme tarihi süzgeci (`contract.md` §2b). İki uç da
@@ -7,10 +7,15 @@ import { useQueryParam } from './listParams'
  * opsiyonel ve birbirinden bağımsız, verilmeyen uç sınırsız sayılıyor, sınırlar
  * dahil.
  *
- * Durum yalnızca adres çubuğunda duruyor. Metin aramalarındaki yerel state +
- * debounce kalıbı burada gerekmiyor: `type="date"` yarım girdi üretmiyor, ya tam
- * bir tarih ya boş string veriyor.
+ * Süzgecin durumu kriterlerle birlikte `useCriteria`'da; burada yalnızca
+ * uygulanmış değerin doğrulaması ve boş durum metni var. Doğrulama taslağa
+ * değil uygulanana bakıyor: kullanıcı kutuyu doldururken değil, "Sorgula"
+ * dedikten sonra anlamlı.
  */
+
+export const ISSUE_DATE_FIELDS = ['issueDateFrom', 'issueDateTo'] as const
+
+export type IssueDateField = (typeof ISSUE_DATE_FIELDS)[number]
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -35,29 +40,25 @@ function readLocalDate(value: string): LocalDate {
 }
 
 export interface IssueDateRange {
-  /** Doğrulanmış değer; adreste bozuk duruyorsa boş. */
+  /** Doğrulanmış değer; uygulanan aralık bozuksa boş. */
   from: LocalDate
   to: LocalDate
-  setFrom: (value: string) => void
-  setTo: (value: string) => void
   /** İkisi de dolu ve başlangıç bitişten sonra. Sözleşmede boş sonuç, hata değil. */
   reversed: boolean
   /** En az bir uç verilmiş. */
   active: boolean
 }
 
-export function useIssueDateRange(): IssueDateRange {
-  const issueDateFrom = useQueryParam('issueDateFrom')
-  const issueDateTo = useQueryParam('issueDateTo')
-
-  const from = readLocalDate(issueDateFrom.value)
-  const to = readLocalDate(issueDateTo.value)
+/** Uygulanmış kriterlerden isteğe gidecek aralık. */
+export function appliedIssueDateRange(
+  applied: CriteriaValues<IssueDateField>,
+): IssueDateRange {
+  const from = readLocalDate(applied.issueDateFrom)
+  const to = readLocalDate(applied.issueDateTo)
 
   return {
     from,
     to,
-    setFrom: issueDateFrom.set,
-    setTo: issueDateTo.set,
     // `LocalDate` sıfır dolgulu olduğu için dize sırası takvim sırasıyla aynı.
     reversed: from !== '' && to !== '' && from > to,
     active: from !== '' || to !== '',

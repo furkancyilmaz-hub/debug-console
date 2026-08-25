@@ -1,21 +1,23 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DataTable } from '../../components/DataTable'
 import type { PageInfo, SortState } from '../../components/table'
 import { isNotFound } from '../../api/client'
 import { listProposals, searchProposalByNo } from '../../api/demoApi'
 import type { ProposalResponse } from '../../api/types'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useResource } from '../../hooks/useResource'
+import { CriteriaBar } from './CriteriaBar'
 import { IssueDateFilter } from './IssueDateFilter'
-import { emptyRangeHint, useIssueDateRange } from './issueDateRange'
-import { useListParams, useQueryParam } from './listParams'
+import { ISSUE_DATE_FIELDS, appliedIssueDateRange, emptyRangeHint } from './issueDateRange'
+import { useCriteria, useListParams } from './listParams'
 import { PROPOSAL_COLUMNS } from './proposalColumns'
 import styles from './crud.module.css'
 
 /**
  * Teklif listesi, düzenleme tarihi süzgeci ve teklif numarasına göre arama.
  * Sayfalama, sıralama ve veri tamamen sunucudan gelir.
+ *
+ * Üç kriter tek "Sorgula" ile uygulanıyor: adres tek seferde yazıldığı için ara
+ * bir istek doğmuyor. Sayfa, boyut ve sıralama düğmenin dışında kalıyor.
  *
  * Arama ucu tek teklif döner ve sayfalanmaz: teklif numarası tekil. İki cevap
  * biçimi burada tek şekle indiriliyor, böylece `DataTable` farkı bilmiyor —
@@ -25,11 +27,13 @@ import styles from './crud.module.css'
  * İki süzgeç birlikte çalışmıyor: `/api/proposals/search` yalnızca `proposalNo`
  * kabul ediyor, tarih parametresi almıyor. Arama kutusuna yazıldığı anda tarih
  * kutuları pasifleşiyor ve tarihler isteğe hiç girmiyor — geçersiz bileşim
- * gönderilmiyor. Adresteki aralık **silinmiyor**; kutu boşalınca geri geliyor.
+ * gönderilmiyor. Pasiflik uygulanana değil **taslağa** bakıyor: kutu ilk tuşta
+ * pasifleşsin, sorgulandığında değil. Adresteki aralık **silinmiyor**; kutu
+ * boşalınca geri geliyor.
  */
 
 const DEFAULT_SORT: SortState = { key: 'issueDate', direction: 'desc' }
-const SEARCH_DELAY_MS = 300
+const FIELDS = ['proposalNo', ...ISSUE_DATE_FIELDS] as const
 
 /** Liste ile aramanın ortak şekli. Arama sonucunda sayfa bilgisi yok. */
 interface ProposalRows {
@@ -40,21 +44,11 @@ interface ProposalRows {
 export function ProposalSearchList() {
   const navigate = useNavigate()
   const { page, size, sort, sortParam, setPage, setSize, setSort } = useListParams(DEFAULT_SORT)
-  const proposalNo = useQueryParam('proposalNo')
-  const range = useIssueDateRange()
+  const criteria = useCriteria(FIELDS)
+  const search = criteria.applied.proposalNo
+  const range = appliedIssueDateRange(criteria.applied)
 
-  const [input, setInput] = useState(proposalNo.value)
-  const search = useDebouncedValue(input, SEARCH_DELAY_MS).trim()
-
-  // Adres anında güncellenir (paylaşılabilir kalsın), istek geciktirilir.
-  function handleSearchChange(value: string) {
-    setInput(value)
-    proposalNo.set(value)
-  }
-
-  // Pasiflik geciktirilmiş değere değil ham girdiye bakıyor: kutu ilk tuşta
-  // pasifleşsin, 300 ms sonra değil.
-  const searching = input !== ''
+  const searching = criteria.draft.proposalNo !== ''
 
   const { state, reload } = useResource<ProposalRows>(
     async (signal) => {
@@ -82,18 +76,18 @@ export function ProposalSearchList() {
 
   return (
     <>
-      <div className={styles.bar}>
+      <CriteriaBar pending={criteria.pending} onSubmit={criteria.submit}>
         <label className={styles.search}>
           <span className={styles.label}>Teklif no</span>
           <input
             type="search"
-            value={input}
+            value={criteria.draft.proposalNo}
             placeholder="Teklif numarasına göre ara"
-            onChange={(event) => handleSearchChange(event.target.value)}
+            onChange={(event) => criteria.set('proposalNo', event.target.value)}
           />
         </label>
-        <IssueDateFilter range={range} disabled={searching} />
-      </div>
+        <IssueDateFilter values={criteria.draft} set={criteria.set} disabled={searching} />
+      </CriteriaBar>
 
       {searching && (
         <p className={styles.hint}>Teklif numarasıyla ararken tarih aralığı uygulanmaz.</p>
